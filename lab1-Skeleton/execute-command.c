@@ -5,8 +5,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 #include <error.h>
 #include <unistd.h> //Access dup system call
+#include <stdio.h> 
 
 int
 command_status (command_t c)
@@ -20,7 +22,7 @@ execute_command (command_t c, int time_travel)
   /* FIXME: Replace this with your implementation.  You may need to
      add auxiliary functions and otherwise modify the source code.
      You can also use external functions defined in the GNU C Library.  */
-  int dummy = c->line_number;
+  int dummy = c->status;
   int dumm2 = time_travel;
   error (1, 0, "command execution not yet implemented");
 
@@ -161,7 +163,7 @@ function to do actual execution.
 void 
 switch_on_command(command_t c)
 {
-  switch(c->type):
+  switch(c->type){
     case AND_COMMAND:
       execute_AND_command(c);  
       break;
@@ -182,6 +184,7 @@ switch_on_command(command_t c)
       break;
    default:
    //Output to stderr with a syntax error message that has line number and colon, then exit
-      fprintf(stderr, "%d: %s\n", c->line_number, "Error in switch_on_command; no enumerated type selected.")
+      fprintf(stderr, "%d: %s\n", c->line_number, "Error in switch_on_command; no enumerated type selected.");
       break;
+  }
 }
