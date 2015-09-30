@@ -20,7 +20,8 @@ execute_command (command_t c, int time_travel)
   /* FIXME: Replace this with your implementation.  You may need to
      add auxiliary functions and otherwise modify the source code.
      You can also use external functions defined in the GNU C Library.  */
-  
+  int dummy = c->line_number;
+  int dumm2 = time_travel;
   error (1, 0, "command execution not yet implemented");
 
 }
@@ -147,7 +148,7 @@ IO_redirect(command_t c)
   stuff from the input into the output after redirect.
    */
   if(c->output != NULL){
-    int output = open(c->output, O_TRUNC | O_CREAT | S_IWUSR | S_IWGRP | O_WRONLY | S_IRUSR | S_IRGRP;
+    int output = open(c->output, O_TRUNC | O_CREAT | S_IWUSR | S_IWGRP | O_WRONLY | S_IRUSR | S_IRGRP);
     IO_error_check(output, c, 1);
   } 
 }
@@ -170,7 +171,7 @@ switch_on_command(command_t c)
     case OR_COMMAND:
       execute_OR_command(c);
       break;
-    case PIPE_COMMAND
+    case PIPE_COMMAND:
       execute_PIPE_command(c);
       break;
     case SIMPLE_COMMAND:
