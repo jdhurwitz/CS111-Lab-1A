@@ -119,6 +119,7 @@ execute_combined_IO(command_t c){
     error(1,0, "Error in execute_combined_IO");
     
   }
+}
 
 void
 IO_error_check(int opened, command_t c, int isOutput){
@@ -184,7 +185,7 @@ switch_on_command(command_t c)
       break;
    default:
    //Output to stderr with a syntax error message that has line number and colon, then exit
-      fprintf(stderr, "%d: %s\n", c->line_number, "Error in switch_on_command; no enumerated type selected.");
+      fprintf(stderr, "%s\n", "Error in switch_on_command; no enumerated type selected.");
       break;
   }
 }

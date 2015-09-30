@@ -24,7 +24,7 @@ void execute_AND_command(command_t);
 void execute_SEQUENCE_command(command_t);
 void execute_PIPE_command(command_t);
 void execute_simple_command(command_t);
-void execute_combined_IO(command_t);
+void execute_combined_io(command_t);
 
 void IO_error_check(int, command_t, int);
 void IO_redirect(command_t);
