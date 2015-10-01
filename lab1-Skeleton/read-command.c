@@ -9,9 +9,33 @@
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
 
+//Structs (nodes) for tokens and commands
+struct cmd_node{
+  struct command *cmd;
+  struct cmd_node *next_node;
+};
+
+struct cmd_node_list{
+  struct cmd_node *head_node;
+  struct cmd_node *cur_node;
+};
+
+struct token_node{
+  char *token;
+  struct token_node *next_node;
+};
+
+struct token_node_list{
+  struct token_node *head_node;
+  struct token_node *cur_node;
+};
+
+
 /* FIXME: Define the type 'struct command_stream' here.  This should
    complete the incomplete type declaration in command.h.  */
-int POSIX_word(char stream_input){
+
+
+int isWord(char stream_input){
   if(isalnum(stream_input))
     return 1;
   switch(stream_input){
@@ -30,6 +54,14 @@ int POSIX_word(char stream_input){
     default: 
       return 0;    
    }
+}
+
+struct token_node *add_token(struct token_node_list *tokens, char *token_to_add){
+  //Check to see if the list is empty
+  if(tokens->head_node == NULL){
+    
+  }
+
 }
 
 enum precedence_list{
