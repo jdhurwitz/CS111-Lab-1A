@@ -56,10 +56,65 @@ int isWord(char stream_input){
    }
 }
 
+
+struct token_node *next_token(struct token_node_list *list){
+  //Make sure it isn't the tail or head node in single node case
+  if(list == NULL)
+    error(1,0, "Error in next_token, token_node_list ptr NULL.");
+
+  if(list->cur_node != NULL)
+    return list->cur_node->next_node;
+  else
+    return NULL;
+} 
+
+
 struct token_node *add_token(struct token_node_list *tokens, char *token_to_add){
-  //Check to see if the list is empty
-  if(tokens->head_node == NULL){
+  int token_node_size = sizeof(struct token_node);
+  //Check to see if the list is empty, and add if it is
+  if(tokens->head_node == NULL){ 
+    struct token_node * new_token = malloc(token_node_size);
+    tokens->head_node = new_token;
+    //Since there is no next node, take care of next pointer
+    tokens->head_node->next_node = NULL;
+    tokens->head_node->token = new_token;
+    //The head node and current node are the same for the single node case
+    tokens->cur_node = tokens->head_node;
     
+    //return
+    return tokens->cur_node;
+  }else{ //There are other nodes
+    struct token_node * tailptr = malloc(token_node_size);
+    tailptr->next_node = NULL;     //the tail points to nothing
+    tailptr->token = token_to_add; //Add pointer to the character we want to add
+    tokens->cur_node->next_node = tailptr;
+    tokens->cur_node = tokens->cur_node->next_node; //Move to new node
+
+    return tokens->cur_node;
+
+  }
+
+}
+
+struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * n_command) {
+  int node_size = sizeof(struct cmd_node);
+
+  if (c_list->head == NULL){
+    struct cmd_node * n_node = malloc (node_size);
+    c_list->head = n_node;
+    c_list->head->next = NULL;
+    c_list->head->command = n_command;
+    c_list->current = c_list->head;
+    return c_list->current;
+
+  } else {
+    struct cmd_node * n_prev = malloc(node_size);
+    n_prev->next = NULL;
+    n_prev->command = n_command;
+    c_list->current->next = n_prev;
+    c_list->current = c_list->current->next;
+    return c_list->current;
+
   }
 
 }
