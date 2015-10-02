@@ -56,6 +56,41 @@ int isWord(char stream_input){
    }
 }
 
+int is_special_token(char test){
+  //-1 = unknown, 0 = not word, 1 = word
+  if(test == ' '){ //White space
+    return 0;
+  }else if( test == '\n')
+    return 1;
+
+ switch(test){
+  case '(':
+  case ')':
+  case '<':
+  case '>':
+  case ';':
+  case '|':
+   return 1;
+  default:
+   return -1;
+  }
+
+}
+
+//FINISH
+int check_cmd(char* cmd){
+  if( is_special_token(cmd[0]) == 0) //space
+    return 1;
+  else if(is_special_token(cmd[0] == 1)
+    return 0;
+  
+	  /*
+	    case d, u, etc.
+	   */
+  
+  return 1;
+}
+
 
 struct token_node *next_token(struct token_node_list *list){
   //Make sure it isn't the tail or head node in single node case
