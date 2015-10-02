@@ -56,7 +56,7 @@ int isWord(char stream_input){
    }
 }
 
-int is_special_token(char test){
+int is_operator(char test){
   //-1 = unknown, 0 = not word, 1 = word
   if(test == ' '){ //White space
     return 0;
@@ -79,9 +79,9 @@ int is_special_token(char test){
 
 //FINISH
 int check_cmd(char* cmd){
-  if( is_special_token(cmd[0]) == 0) //space
+  if( is_operator(cmd[0]) == 0) //space
     return 1;
-  else if(is_special_token(cmd[0] == 1)
+  else if(is_operator(cmd[0] == 1)
     return 0;
   
 	  /*
@@ -184,20 +184,17 @@ void* view_top (struct stack *stack) {
 }
 
 enum precedence_list{
-  IF          = 0,
-  UNTIL_WHILE = 1,
-  THEN        = 2,
-  DO          = 3,
-  ELSE        = 4,
-  OPEN_PAR    = 5,
-  SEMICOL     = 6,
-  PIPE        = 7, 
-  OUTPUT_REDIR= 8,
-  INPUT_REDIR = 9,
-  FI          = 10,
-  DONE        = 11, 
-  CLOSE_PAR   = 12,
-  ERROR       = 13
+  THEN        = 0,
+  DO          = 1,
+  ELSE        = 2,
+  OPEN_PAR    = 3,
+  SEMICOL     = 4,
+  PIPE        = 5,
+  OUTPUT_REDIR= 6,
+  INPUT_REDIR = 7,
+  DONE        = 8,
+  CLOSE_PAR   = 9,
+  ERROR       = 10
 };
 
 //NOT DONE FIX THIS
@@ -228,43 +225,41 @@ int get_precedence(char *cmd_arg){
 	break;
     }
   }
-  
-
 }
 
-command_t combine (command_t 1st, command_t 2nd, char *operand) {
+command_t combine (command_t first, command_t second, char *operand) {
   command_t combined = malloc (sizeof (struct command));
-  combined->u.command[2]=NULL;
-  combined->u.command[1]=second_comand;
-  combined->u.command[0]=first_command;
-  combined->status=-1;
   combined->input=NULL;
+  combined->u.command[1]=second;
+  combined->u.command[0]=first;
+  combined->status=-1;
   combined->output=NULL;
   int length;
   if (operand[0] == '>' || operand[0] == '<'){
     switch (operand[0]) {
     case '>':
-      combined->input = 1st->input;
-      length = strlen(2nd->u.word[0]);
+      combined->input = first->input;
+      length = strlen(second->u.word[0]);
       combined->output=malloc(sizeof(char)*(len+1));
-      strcpy(combined->output, 2nd->u.word[0]);
+      strcpy(combined->output, second->u.word[0]);
       break;
     case '<':
-      combined->output = 1st->output;
-      length = strlen(2nd->u.word[0]);
+      combined->output = first->output;
+      length = strlen(second->u.word[0]);
       combined->input=malloc(sizeof(char) * (len+1));
-      strcpy(combined->input, 2nd->u.word[0]);
+      strcpy(combined->input, second->u.word[0]);
       break;
     }
     return combined;
   }
+    
+  if (operand[0]=='&' && operand[1]=='&'){
+      combined->type = AND_COMMAND;
+  }
+  if (operand[0]=='|' && operand[1]=='|'){
+      combined->type = OR_COMMAND;
+  }
   switch (operand[0]) {
-  case 'i':
-    combined->type = IF_COMMAND;
-    break;
-  case 'u':
-    combined->type = UNTIL_COMMAND;
-    break;
   case ';':
     combined->type = SEQUENCE_COMMAND;
     break;
@@ -273,9 +268,6 @@ command_t combine (command_t 1st, command_t 2nd, char *operand) {
     break;
   case '|':
     combined->type = PIPE_COMMAND;
-    break;
-  case 'w':
-    combined->type = WHILE_COMMAND;
     break;
   default:
     error (1, 0, "Command type not recognized");
@@ -314,6 +306,16 @@ int start_cmd_word (char *s) {
   }
 }
 
+          
+int check_for_semicolon(char* c){
+    if(c[0] == ';')
+        return 1;
+    else if(c[0] == '\n')
+        return 1;
+    else
+        return 0;
+}
+          
 int is_cmd_word (char *s) {
   if (start_cmd_word(s) || mid_cmd_word(s)) {
     return 1;
@@ -321,7 +323,124 @@ int is_cmd_word (char *s) {
     return 0;
   }
 }
- 
+
+command_t create_subshell_cmd(command_t c){
+    int alloc_size = sizeof(struct command);
+    command_t cmd = malloc(alloc_size);
+    //Set type, status, and I/O for a subshell cmd
+    cmd->input = NULL;
+    cmd->output = NULL;
+    cmd->status = 1; //-1 if not known, or hasn't exited yet
+    cmd->type = SUBSHELL_COMMAND;
+    cmd->u.command[0] = c;
+    cmd->u.command[1] = NULL;
+    return cmd;
+}
+          
+command_t c_simple(char *s) {
+    command_t simple = malloc(sizeof(struct command));
+    simple->status = -1;
+    simple->input = NULL;
+    simple->type = SIMPLE_COMMAND;
+    simple->output = NULL;
+    
+    char *buf = malloc (sizeof (char) * (strlen(s) + 1));
+    simple->u.word = malloc(sizeof(char*));
+    
+    int index, arguments;
+    
+    for (int i = 0; i < strlen(s); i++){
+        switch (s[i]){
+            case ' ':
+            case '\0':
+                if (index == 0){
+                    index = -1;
+                    break;
+                } else {
+                    buf[index] = '\0';
+                    simple->u.word = realloc(simple->u.word, sizeof (char*) * (arguments + 1));
+                    simple->u.word[arguments] = malloc (sizeof (char) * (index +1));
+                    strcpy (simple->u.word[arguments], buf);
+                    arguments = arguments +1;
+                    index = -1;
+                }
+                break;
+            default:
+                buf[index] = s[i];
+                break;
+        }
+        index = index +1;
+    }
+    simple->u.word[arguments] = NULL;
+    return simple;
+}
+          
+command_t create (struct token_node_list *list){
+    list->cur_node = list->head_node;
+    command_t cmd = malloc(sizeof(struct command));
+    struct token_node * current_node = next_token(list);
+    
+    struct stack * command = create_stack(50);
+    struct stack * operator = create_stack(50);
+    char *t_word = current_node->token;
+    while (current_node != NULL) {
+        if (isWord(t_word[0])) {
+            push(command, t_word, sizeof(t_word));
+        }
+        if (t_word[0] == '(') {
+            push(command, t_word[0], sizeof(t_word[0]));
+        }
+        if (is_operator(t_word[0]) {
+            if (operator->num_contents==0){
+                push(operator, t_word[0], sizeof(t_word[0]));
+            } else if (operator->num_contents!=0) {
+                pop
+            }
+        }
+    }
+    
+}
+
+command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
+    //operator stack and command stack as parameters
+              char *op = pop(operator_stack);
+              void *cmd1, *cmd2;
+              command_t combined_cmd = NULL;
+              //Look for two commands and consolidate for precedence issues later.
+              //Second command will be on the top of the stack
+              switch(op[0]){
+                  case '<':
+                  case '>':
+                  case '\n':
+                  case ';':
+                  case '|':
+                      cmd2 = pop(cmd_stack);
+                      cmd1 = pop(cmd_stack);
+                      combined_cmd = combine(cmd1, cmd2, op);
+                      break;
+                  case '(':
+                  case ')':
+                      cmd1 = pop(cmd_stack);
+                      combined_cmd = create_subshell_cmd(cmd1);
+                      break;
+                  default:
+                      break;
+                      
+              }
+              return combined_cmd; //If this is NULL, cases weren't satisfied
+              
+}
+          
+void print_token_list(struct token_node_list *t){
+              struct token_node* prev_cur = t->cur_node;
+              t->cur_node = t->head;
+              struct token_node* token_iterator;
+              while( (token_iterator = next_token(t))){
+                  fprintf(stderr, "<%s>\n", token_iterator->token);
+              }
+              t->cur_node = prev_cur;
+              return;
+}
 /*
 Create the appearance of a stack in order to hold the commands.
  */
