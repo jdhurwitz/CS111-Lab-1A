@@ -149,21 +149,144 @@ void* view_top (struct stack *stack) {
 }
 
 enum precedence_list{
-  IF_P,
-  THEN_P,
-  DO_P,
-  ELSE_P,
-  OPEN_PAR_P,
-  SEMICOL_P,
-  PIPE_P,
-  OUTPUT_P,
-  INPUT_P,
-  FI_P,
-  DONE_P,
-  CLOSE_PAR_P,
-  ERROR_P
+  IF          = 0,
+  UNTIL_WHILE = 1,
+  THEN        = 2,
+  DO          = 3,
+  ELSE        = 4,
+  OPEN_PAR    = 5,
+  SEMICOL     = 6,
+  PIPE        = 7, 
+  OUTPUT_REDIR= 8,
+  INPUT_REDIR = 9,
+  FI          = 10,
+  DONE        = 11, 
+  CLOSE_PAR   = 12,
+  ERROR       = 13
 };
 
+//NOT DONE FIX THIS
+int get_precedence(char *cmd_arg){
+  int isCMD = -1;
+  if(strlen(cmd_arg) == 1)
+    isCMD = 0;
+  else if(strlen(cmd_arg) < 6)
+    isCMD = 1;
+ 
+  if(strlen(cmd_arg) == 1){ //This means that we are looking at signle char
+    if(*cmd_arg == '\n')
+      return SEMICOL; //same precedence
+    switch(*cmd_arg){
+      case '(':
+        return OPEN_PAR;
+      case ')':
+        return CLOSE_PAR;
+      case ';':
+        return SEMICOL;
+      case '|':
+        return PIPE:
+      case '>':
+        return OUTPUT_REDIR;
+      case '<':
+        return INPUT_REDIR;
+      default:
+	break;
+    }
+  }
+  
+
+}
+
+command_t combine (command_t 1st, command_t 2nd, char *operand) {
+  command_t combined = malloc (sizeof (struct command));
+  combined->u.command[2]=NULL;
+  combined->u.command[1]=second_comand;
+  combined->u.command[0]=first_command;
+  combined->status=-1;
+  combined->input=NULL;
+  combined->output=NULL;
+  int length;
+  if (operand[0] == '>' || operand[0] == '<'){
+    switch (operand[0]) {
+    case '>':
+      combined->input = 1st->input;
+      length = strlen(2nd->u.word[0]);
+      combined->output=malloc(sizeof(char)*(len+1));
+      strcpy(combined->output, 2nd->u.word[0]);
+      break;
+    case '<':
+      combined->output = 1st->output;
+      length = strlen(2nd->u.word[0]);
+      combined->input=malloc(sizeof(char) * (len+1));
+      strcpy(combined->input, 2nd->u.word[0]);
+      break;
+    }
+    return combined;
+  }
+  switch (operand[0]) {
+  case 'i':
+    combined->type = IF_COMMAND;
+    break;
+  case 'u':
+    combined->type = UNTIL_COMMAND;
+    break;
+  case ';':
+    combined->type = SEQUENCE_COMMAND;
+    break;
+  case '\n':
+    combined->type = SEQUENCE_COMMAND;
+    break;
+  case '|':
+    combined->type = PIPE_COMMAND;
+    break;
+  case 'w':
+    combined->type = WHILE_COMMAND;
+    break;
+  default:
+    error (1, 0, "Command type not recognized");
+    break;
+  }
+  return combined;
+}
+
+
+//Return 0 if it is made up of white space
+int is_empty(char *s) {
+  while (*s!= '\0') {
+    if (!isspace(*s))
+      return 0;
+    s++;
+  }
+  return 1;
+}
+
+int mid_cmd_word (char *s) {
+  if (strcmp(buf, "then") == 0 || strcmp(buf, "do") == 0 ||
+      strcmp(buf,"fi") == 0 || strcmp(buf, "else") == 0 || strmp(buf,
+								 "done") == 0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int start_cmd_word (char *s) {
+  if (strcmp(buf, "until") == 0 || strcmp(buf, "if") == 0 ||
+      strcmp(buf, "while") == 0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int is_cmd_word (char *s) {
+  if (start_cmd_word(s) || mid_cmd_word(s)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+ 
 /*
 Create the appearance of a stack in order to hold the commands.
  */
