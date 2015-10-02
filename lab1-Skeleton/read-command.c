@@ -119,6 +119,35 @@ struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * 
 
 }
 
+void remove_stack (struct stack *stack) {
+  for (int i = 0; i < stack->num_contents; i++) {
+    free (stack->contents[i]);
+  }
+  free (stack->contents);
+  free (stack);
+  return;
+}
+
+void push (struct stack *stack, void *val, int increase_size) {
+  if (stack->num_contents == stack->max_contents) {
+    stack->max_contents = stack->max_contents + increase_size;
+    stack->contents = realloc (stack->contents, stack->max_contents * sizeof(void));
+  }
+  stack->contents[stack->num_contents] = val;
+  stack->num_contents = stack->num_contents + 1;
+  return;
+}
+
+
+void* view_top (struct stack *stack) {
+  if (stack->num_contents == 0) {
+    return NULL;
+  } else {
+    void *top_val = stack->contents[stack->num_contents-1];
+    return top_val;
+  }
+}
+
 enum precedence_list{
   IF_P,
   THEN_P,
@@ -134,6 +163,46 @@ enum precedence_list{
   CLOSE_PAR_P,
   ERROR_P
 };
+
+/*
+Create the appearance of a stack in order to hold the commands.
+ */
+struct stack{
+  int num_contents;
+  int max_contents;
+  void** contents;
+}
+
+struct stack* create_stack(int specified_max){
+  int stack_size = sizeof(struct stack);
+  struct stack* new_stack = malloc(stack_size);
+  new_stack->max_contents = specified_max; //Set max amt in stack
+  new_stack->num_contents = 0; //Nothing in the stack atm
+
+  int contents_alloc_size = new_stack->max_contents * sizeof(void*);
+  new_stack->contents = malloc(contents_alloc_size); 
+  return new_stack;
+}
+
+struct stack* increase_stack_max(struct stack* user_stack, int new_max){
+  user_stack->max_contents = new_max;
+}
+
+
+void* pop(struct stack *user_stack){
+  if(user_stack->max_contents <=0 || user_stack->num_contents <= 0){
+    return NULL;
+  }
+  else{
+    int new_num_contents = num_contents -1;
+    user_stack->num_contents = new_num_contents;
+    void* modified_stack = user_stack->contents[user_stack->num_contents];
+    return modified_stack;
+  }
+  return NULL;
+
+}
+
 
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
