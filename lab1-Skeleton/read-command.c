@@ -381,7 +381,7 @@ command_t create (struct token_node_list *list){
     struct token_node * current_node = next_token(list);
     
     struct stack * command = create_stack(50);
-    struct stack * operator = create_stack(50);
+    struct stack * operator_stack = create_stack(50);
     char *t_word = current_node->token;
     while (current_node != NULL) {
         if (isWord(t_word[0])) {
@@ -391,10 +391,12 @@ command_t create (struct token_node_list *list){
             push(command, t_word[0], sizeof(t_word[0]));
         }
         if (is_operator(t_word[0]) {
-            if (operator->num_contents==0){
-                push(operator, t_word[0], sizeof(t_word[0]));
-            } else if (operator->num_contents!=0) {
-                pop
+            if (operator_stack->num_contents==0){
+                push(operator_stack, t_word[0], sizeof(t_word[0]));
+            } else if (operator_stack->num_contents!=0) {
+                if (equal or greater precedence) {
+                    op1 = pop(
+                }
             }
         }
     }
