@@ -375,27 +375,65 @@ command_t c_simple(char *s) {
     return simple;
 }
           
-command_t create (struct token_node_list *list){
+command_t create (struct token_node_list *list, struct command_node_list *cmd_list){
     list->cur_node = list->head_node;
     command_t cmd = malloc(sizeof(struct command));
     struct token_node * current_node = next_token(list);
     
-    struct stack * command = create_stack(50);
+    struct stack * command_stack = create_stack(50);
     struct stack * operator_stack = create_stack(50);
     char *t_word = current_node->token;
     while (current_node != NULL) {
         if (isWord(t_word[0])) {
-            push(command, t_word, sizeof(t_word));
+            push(command_stack, t_word, sizeof(t_word));
         }
         if (t_word[0] == '(') {
-            push(command, t_word[0], sizeof(t_word[0]));
+            push(command_stack, t_word[0], sizeof(t_word[0]));
         }
         if (is_operator(t_word[0]) {
             if (operator_stack->num_contents==0){
                 push(operator_stack, t_word[0], sizeof(t_word[0]));
             } else if (operator_stack->num_contents!=0) {
-                if (equal or greater precedence) {
-                    op1 = pop(
+                if(t_word[0] == '|') {
+                    //Stack not empty
+                    while(operator_stack->num_contents != 0 && (view_top(command_stack)->command->type != SUBSHELL_COMMAND){
+                        if(view_top(operator_stack)->command->type == PIPE_COMMAND){
+                            //Combine commands into pipe, top of stack will be 2nd
+                            command_t first_cmd = view_top(command_stack)->command;
+                            pop(command_stack);
+                            command_t second_cmd = view_top(command_stack)->command;
+                            pop(command_stack);
+                            
+                            char *operator_to_combine = view_top(operator_stack)
+                            combine(first_cmd, second_cmd, operator_to_combine);
+                            pop(operator_stack);
+                        }else {
+                            break;
+                        }
+                    }
+                          cmd_node_list->cur_node->cmd->command->type   = PIPE_COMMAND;
+                          cmd_node_list->cur_node->cmd->command->input  = NULL;
+                          cmd_node_list->cur_node->cmd->command->output = NULL;
+                } else if (t_word[0] == '&' && t_word[1] == '&'){
+                    cmd_list->cur_node->cmd->command->type= AND_COMMAND;
+                    cmd_list->cur_node->cmd->command->input = NULL;
+                    cmd_list->cur_node->cmd->command->output = NULL;
+                    while (operator_stack->num_contents > 0 && (view_top(operator_stack)->command->type != SUBSHELL_COMMAND) {
+                        if (view_top(operator_stack)->command->type == OR_COMMAND ||
+                            view_top(operator_stack)->command->type == PIPE_COMMAND ||
+                            view_top(operator_stack)->command->type == AND_COMMAND)
+                        {
+                            command_t first_cmd = view_top(command_stack)->command;
+                            pop(command_stack);
+                            command_t second_cmd = view_top(command_stack)->command;
+                            pop(command_stack);
+
+                            char *operator_to_combine = view_top(operator_stack);
+                            combine(first_cmd, second_cmd, operator_to_combine);
+                            pop(operator_stack);
+                        } else {
+                            break;
+                        }
                 }
             }
         }
