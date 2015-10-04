@@ -98,13 +98,13 @@ int is_operator(char test){
 
 
 
-struct token_node *next_token(struct token_node_list *list){
+struct token_node *next_token(struct token_node *token){
   //Make sure it isn't the tail or head node in single node case
-  if(list == NULL)
-    error(1,0, "Error in next_token, token_node_list ptr NULL.");
+  if(token == NULL)
+    error(1,0, "Error in next_token, token ptr NULL.");
 
-  if(list->cur_node != NULL)
-    return list->cur_node->next_node;
+  if(token->next_node != NULL)
+    return token->next_node;
   else
     return NULL;
 } 
@@ -164,7 +164,7 @@ struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * 
 
 }
 
-
+/*
 
 command_t combine (command_t first, command_t second, char *operator) {
   command_t combined = malloc (sizeof (struct command));
@@ -214,8 +214,27 @@ command_t combine (command_t first, command_t second, char *operator) {
   }
   return combined;
 }
+*/
 
-
+//Function to combine commands and an operator. RETURN 1 if success, 0 if fail
+int combine(struct stack* operator_stack, struct stack* command_stack){
+    if(operator_stack->num_contents  == 0) //No operators
+        return 0;
+    else if(command_stack->num_contents == 0 || command_stack->num_contents == 1) //not enough commands
+        return 0;
+    command_t combined = pop(operator_stack);
+    combined->input = NULL;
+    combined->output = NULL;
+    
+    command_t second = pop(command_stack);
+    command_t first  = pop(command_stack);
+    
+    combined->u.command[1] = second;
+    combined->u.command[0] = first;
+    push(operator_stack, combined, 10); //10 for realloc size
+    return 1;
+    
+}
 
 command_t create_subshell_cmd(command_t c){
     int alloc_size = sizeof(struct command);
@@ -229,7 +248,7 @@ command_t create_subshell_cmd(command_t c){
     cmd->u.command[1] = NULL;
     return cmd;
 }
-          
+/*
 command_t c_simple(char *s) {
     command_t simple = malloc(sizeof(struct command));
     simple->status = -1;
@@ -267,11 +286,13 @@ command_t c_simple(char *s) {
     simple->u.word[arguments] = NULL;
     return simple;
 }
-
+*/
 
 ///////////////////////////////////////////////////////////////////
 //Populate a command tree to be used for printing out commands.  //
 ///////////////////////////////////////////////////////////////////
+
+/*
 command_t create_tree (struct token_node_list *list){
     list->cur_node = list->head;
     command_t cmd = malloc(sizeof(struct command));
@@ -338,6 +359,112 @@ command_t create_tree (struct token_node_list *list){
         }
     }
     
+}
+*/
+
+command_t create_tree (struct token_node_list *list){
+    //list->cur_node = list->head;
+    if(token_node_list == NULL){
+        fprintf(stderr, "\ntoken_node_list is NULL in create_tree\n");
+    }
+    command_t cmd = malloc(sizeof(struct command));
+    command_t cmd_prev = NULL;
+    struct token_node * current_node = list->head;
+    
+    //Create operator and command stack of size 50
+    struct stack* command_stack = create_stack(50);
+    struct stack* operator_stack = create_stack(50);
+    
+    char *t_word = current_node->token;
+    while(current_node->next_node != NULL){
+        
+        ///////////////// Highest priority, so can avoid checking I/O, etc.
+        //////PIPE///////
+        /////////////////
+        if(current_node->token_type == PIPE){
+            cmd->type = PIPE_COMMAND;
+            
+            
+        }
+        
+        ///////////////// Lowest precedence, along with newline
+        ////SEMICOLON////
+        /////////////////
+        if(current_node->token_type == SEMICOLON){
+            cmd->type = SEQUENCE_COMMAND;
+            if(combine(operator_stack, command_stack) == 1)
+                push(operator_stack,cmd ,10);
+            else{
+                fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty.\n");
+            }
+                
+        }
+        /////////////////
+        //LEFT REDIRECT//
+        /////////////////
+        if(current_node->token_type == LEFT_REDIRECT){
+            if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
+                fprintf(stderr, "\nFormatting issue with left redirect.\n");
+                return NULL;
+            }else if(cmd_prev->input != NULL || cmd_prev->output != NULL)
+                return NULL:
+            else{   //Check to see if there is a SIMPLE_COMMAND after redirect
+                current_node = next_token(current_node);
+                if(current_node->type == WORD){
+                    cmd_prev->input = current_node->token;  //The input for left redir is the word of current node
+                    break;
+                }
+                else{
+                    fprintf(stderr, "\nThere is no word after the left redirect.\n");
+                    return NULL;
+                }
+            }
+        }
+        
+        //////////////////
+        //RIGHT REDIRECT//
+        //////////////////
+        if(current_node->token_type == RIGHT_REDIRECT){
+            if(cmd_prev->output != NULL){
+                fprintf(stderr, "\nRight redirect has output field already filled.\n");
+                return NULL;
+            }
+            if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
+                fprintf(stderr, "\nFormatting issue with right redirect.\n");
+                return NULL;
+            }
+            current_node = next_token(current_node);
+            if(current_node->type == WORD){      //Check for SIMPLE_COMMAND
+                cmd_prev->output = current_node->token;
+                break;
+            }
+            //At this point we've reached a formatting error
+            fprintf(stderr, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
+        }
+        
+        ///////////////// Same precedence as OR
+        ///////AND///////
+        /////////////////
+        if(current_node->token_type == AND){
+            
+        }
+        
+        ////////////////// Same precedence as AND
+        ////////OR///////
+        /////////////////
+        if(current_node->token_type == OR){
+            
+        }
+        
+        /////////////////
+        //////WORD///////
+        /////////////////
+        if(current_node->token_type == WORD){
+            
+        }
+        
+    }
+
 }
 
 command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
@@ -454,7 +581,7 @@ struct stack* increase_stack_max(struct stack* user_stack, int new_max){
 ///////////////////////////////////////////////////////////////////
 //Creates the stream of tokens for use in stack processing later.//
 ///////////////////////////////////////////////////////////////////
-struct token_stream* create_token_stream(char* input, int num_of_chars){
+struct token_node_list* create_token_stream(char* input, int num_of_chars){
     //Create the token node list
     struct token_node_list* new_token_list= malloc(sizeof(struct token_node_list));
     struct token_node_list* list_iterator = new_token_list;
@@ -671,7 +798,7 @@ make_command_stream (int (*get_next_byte) (void *),
     
     //If we've reached here a buffer has been created
     //Make streams
-    struct token_stream* stream = create_token_stream(input_stream, char_num);
+    struct token_node_list* stream = create_token_stream(input_stream, char_num);
     
     if(stream != NULL){
         //Create forest
