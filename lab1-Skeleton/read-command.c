@@ -15,7 +15,7 @@ struct cmd_node{
   struct cmd_node *next_node;
 };
 
-struct cmd_node_list{
+struct command_stream{
   struct cmd_node *head;
   struct cmd_node *cur_node;
   struct cmd_node *tail;
@@ -813,7 +813,12 @@ make_command_stream (int (*get_next_byte) (void *),
 command_t
 read_command_stream (command_stream_t s)
 {
-  /* FIXME: Replace this with your implementation too.  */
-  error (1, 0, "command reading not yet implemented");
-  return 0;
+    if(s == NULL || s->cur_node == NULL){
+        fprintf(stderr, "\nCommand stream in read command is NULL.\n");
+        return NULL;
+    }
+    struct cmd_node *cmd_node_print = s->cur_node;
+    s->cur_node = s->cur_node->next_node;
+    
+    return cmd_node_print->cmd;
 }
