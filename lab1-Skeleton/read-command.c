@@ -215,15 +215,6 @@ command_t combine (command_t first, command_t second, char *operator) {
   return combined;
 }
 
-          
-int check_for_semicolon(char* c){
-    if(c[0] == ';')
-        return 1;
-    else if(c[0] == '\n')
-        return 1;
-    else
-        return 0;
-}
 
 
 command_t create_subshell_cmd(command_t c){
@@ -286,6 +277,7 @@ command_t create_tree (struct token_node_list *list){
     command_t cmd = malloc(sizeof(struct command));
     struct token_node * current_node = next_token(list);
     
+    //Create operator and command stack of size 50
     struct stack * command_stack = create_stack(50);
     struct stack * operator_stack = create_stack(50);
     
@@ -679,10 +671,14 @@ make_command_stream (int (*get_next_byte) (void *),
     
     //If we've reached here a buffer has been created
     //Make streams
+    struct token_stream* stream = create_token_stream(input_stream, char_num);
     
-    
+    if(stream != NULL){
+        //Create forest
+    }
     
     free(input_stream)
+    //Deal with freeing the linked list
     return command_stream;
 }
 
