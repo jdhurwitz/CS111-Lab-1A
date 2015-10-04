@@ -11,24 +11,42 @@
 
 //Structs (nodes) for tokens and commands
 struct cmd_node{
-  struct command *cmd;
+  struct command *cmd;  //This is how command is accessed
   struct cmd_node *next_node;
 };
 
 struct cmd_node_list{
-  struct cmd_node *head_node;
+  struct cmd_node *head;
   struct cmd_node *cur_node;
+  struct cmd_node *tail;
 };
 
+
+enum token_name{
+    PIPE,
+    AND,
+    OR,
+    SEMICOLON,
+    LEFT_REDIRECT,
+    RIGHT_REDIRECT,
+    SUBSHELL,
+    WORD
+    
+};
+//Tokens
+
 struct token_node{
+  enum token_name token_type;
   char *token;
   struct token_node *next_node;
 };
 
 struct token_node_list{
-  struct token_node *head_node;
+  struct token_node *head;
+  struct token_node_list *next;
   struct token_node *cur_node;
 };
+
 
 
 /* FIXME: Define the type 'struct command_stream' here.  This should
@@ -77,19 +95,7 @@ int is_operator(char test){
 
 }
 
-//FINISH
-int check_cmd(char* cmd){
-  if( is_operator(cmd[0]) == 0) //space
-    return 1;
-  else if(is_operator(cmd[0] == 1)
-    return 0;
-  
-	  /*
-	    case d, u, etc.
-	   */
-  
-  return 1;
-}
+
 
 
 struct token_node *next_token(struct token_node_list *list){
@@ -103,26 +109,27 @@ struct token_node *next_token(struct token_node_list *list){
     return NULL;
 } 
 
-
-struct token_node *add_token(struct token_node_list *tokens, char *token_to_add){
+struct token_node *add_token(struct token_node_list *tokens, char *token_to_add, enum token_name type){
   int token_node_size = sizeof(struct token_node);
+  struct token_node * new_token = malloc(token_node_size);
+  new_token->token_name = type;
   //Check to see if the list is empty, and add if it is
-  if(tokens->head_node == NULL){ 
-    struct token_node * new_token = malloc(token_node_size);
-    tokens->head_node = new_token;
+  if(tokens->head == NULL){
+    tokens->head = new_token;
     //Since there is no next node, take care of next pointer
-    tokens->head_node->next_node = NULL;
-    tokens->head_node->token = new_token;
+    tokens->head->next_node = NULL;
+    tokens->head->token = new_token;
     //The head node and current node are the same for the single node case
-    tokens->cur_node = tokens->head_node;
+    tokens->cur_node = tokens->head;
+    
     
     //return
     return tokens->cur_node;
   }else{ //There are other nodes
-    struct token_node * tailptr = malloc(token_node_size);
-    tailptr->next_node = NULL;     //the tail points to nothing
-    tailptr->token = token_to_add; //Add pointer to the character we want to add
-    tokens->cur_node->next_node = tailptr;
+    //struct token_node * tailptr = malloc(token_node_size);
+    new_token->next_node = NULL;     //the tail points to nothing
+    new_token->token = token_to_add; //Add pointer to the character we want to add
+    tokens->cur_node->next_node = new_token;
     tokens->cur_node = tokens->cur_node->next_node; //Move to new node
 
     return tokens->cur_node;
@@ -131,6 +138,7 @@ struct token_node *add_token(struct token_node_list *tokens, char *token_to_add)
 
 }
 
+ 
 struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * n_command) {
   int node_size = sizeof(struct cmd_node);
 
@@ -139,93 +147,24 @@ struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * 
     c_list->head = n_node;
     c_list->head->next = NULL;
     c_list->head->command = n_command;
-    c_list->current = c_list->head;
-    return c_list->current;
+    c_list->cur_node = c_list->head;
+    c_list->tail = c_list->cur_node;
+    return c_list->cur_node;
 
   } else {
-    struct cmd_node * n_prev = malloc(node_size);
-    n_prev->next = NULL;
-    n_prev->command = n_command;
-    c_list->current->next = n_prev;
-    c_list->current = c_list->current->next;
+    struct cmd_node * new_node = malloc(node_size);
+    new_node->next = NULL;
+    new_node->command = n_command;
+    c_list->cur_node->next = n_prev;
+    c_list->cur_node = c_list->cur_node->next;
+    c_list->tail = c_list->cur_node;
     return c_list->current;
 
   }
 
 }
 
-void remove_stack (struct stack *stack) {
-  for (int i = 0; i < stack->num_contents; i++) {
-    free (stack->contents[i]);
-  }
-  free (stack->contents);
-  free (stack);
-  return;
-}
 
-void push (struct stack *stack, void *val, int increase_size) {
-  if (stack->num_contents == stack->max_contents) {
-    stack->max_contents = stack->max_contents + increase_size;
-    stack->contents = realloc (stack->contents, stack->max_contents * sizeof(void));
-  }
-  stack->contents[stack->num_contents] = val;
-  stack->num_contents = stack->num_contents + 1;
-  return;
-}
-
-
-void* view_top (struct stack *stack) {
-  if (stack->num_contents == 0) {
-    return NULL;
-  } else {
-    void *top_val = stack->contents[stack->num_contents-1];
-    return top_val;
-  }
-}
-
-enum precedence_list{
-  THEN        = 0,
-  DO          = 1,
-  ELSE        = 2,
-  OPEN_PAR    = 3,
-  SEMICOL     = 4,
-  PIPE        = 5,
-  OUTPUT_REDIR= 6,
-  INPUT_REDIR = 7,
-  DONE        = 8,
-  CLOSE_PAR   = 9,
-  ERROR       = 10
-};
-
-//NOT DONE FIX THIS
-int get_precedence(char *cmd_arg){
-  int isCMD = -1;
-  if(strlen(cmd_arg) == 1)
-    isCMD = 0;
-  else if(strlen(cmd_arg) < 6)
-    isCMD = 1;
- 
-  if(strlen(cmd_arg) == 1){ //This means that we are looking at signle char
-    if(*cmd_arg == '\n')
-      return SEMICOL; //same precedence
-    switch(*cmd_arg){
-      case '(':
-        return OPEN_PAR;
-      case ')':
-        return CLOSE_PAR;
-      case ';':
-        return SEMICOL;
-      case '|':
-        return PIPE:
-      case '>':
-        return OUTPUT_REDIR;
-      case '<':
-        return INPUT_REDIR;
-      default:
-	break;
-    }
-  }
-}
 
 command_t combine (command_t first, command_t second, char *operand) {
   command_t combined = malloc (sizeof (struct command));
@@ -276,36 +215,6 @@ command_t combine (command_t first, command_t second, char *operand) {
   return combined;
 }
 
-
-//Return 0 if it is made up of white space
-int is_empty(char *s) {
-  while (*s!= '\0') {
-    if (!isspace(*s))
-      return 0;
-    s++;
-  }
-  return 1;
-}
-
-int mid_cmd_word (char *s) {
-  if (strcmp(buf, "then") == 0 || strcmp(buf, "do") == 0 ||
-      strcmp(buf,"fi") == 0 || strcmp(buf, "else") == 0 || strmp(buf,
-								 "done") == 0) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-int start_cmd_word (char *s) {
-  if (strcmp(buf, "until") == 0 || strcmp(buf, "if") == 0 ||
-      strcmp(buf, "while") == 0) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
           
 int check_for_semicolon(char* c){
     if(c[0] == ';')
@@ -315,14 +224,7 @@ int check_for_semicolon(char* c){
     else
         return 0;
 }
-          
-int is_cmd_word (char *s) {
-  if (start_cmd_word(s) || mid_cmd_word(s)) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
+
 
 command_t create_subshell_cmd(command_t c){
     int alloc_size = sizeof(struct command);
@@ -376,7 +278,7 @@ command_t c_simple(char *s) {
 }
           
 command_t create (struct token_node_list *list, struct command_node_list *cmd_list){
-    list->cur_node = list->head_node;
+    list->cur_node = list->head;
     command_t cmd = malloc(sizeof(struct command));
     struct token_node * current_node = next_token(list);
     
@@ -481,14 +383,60 @@ void print_token_list(struct token_node_list *t){
               t->cur_node = prev_cur;
               return;
 }
-/*
-Create the appearance of a stack in order to hold the commands.
- */
+                           
+///////////////////////////////////////////////////////////////////
+//Create the appearance of a stack in order to hold the commands.//
+///////////////////////////////////////////////////////////////////
+
 struct stack{
   int num_contents;
   int max_contents;
   void** contents;
 }
+                           
+                           void remove_stack (struct stack *stack) {
+                               for (int i = 0; i < stack->num_contents; i++) {
+                                   free (stack->contents[i]);
+                               }
+                               free (stack->contents);
+                               free (stack);
+                               return;
+                           }
+                           
+                           void push (struct stack *stack, void *val, int increase_size) {
+                               if (stack->num_contents == stack->max_contents) {
+                                   stack->max_contents = stack->max_contents + increase_size;
+                                   stack->contents = realloc (stack->contents, stack->max_contents * sizeof(void));
+                               }
+                               stack->contents[stack->num_contents] = val;
+                               stack->num_contents = stack->num_contents + 1;
+                               return;
+                           }
+                           
+                           
+                           void* view_top (struct stack *stack) {
+                               if (stack->num_contents == 0) {
+                                   return NULL;
+                               } else {
+                                   void *top_val = stack->contents[stack->num_contents-1];
+                                   return top_val;
+                               }
+                           }
+                           
+                           void* pop(struct stack *user_stack){
+                               if(user_stack->max_contents <=0 || user_stack->num_contents <= 0){
+                                   return NULL;
+                               }
+                               else{
+                                   int new_num_contents = num_contents -1;
+                                   user_stack->num_contents = new_num_contents;
+                                   void* modified_stack = user_stack->contents[user_stack->num_contents];
+                                   return modified_stack;
+                               }
+                               return NULL;
+                               
+                           }
+
 
 struct stack* create_stack(int specified_max){
   int stack_size = sizeof(struct stack);
@@ -506,31 +454,173 @@ struct stack* increase_stack_max(struct stack* user_stack, int new_max){
 }
 
 
-void* pop(struct stack *user_stack){
-  if(user_stack->max_contents <=0 || user_stack->num_contents <= 0){
-    return NULL;
-  }
-  else{
-    int new_num_contents = num_contents -1;
-    user_stack->num_contents = new_num_contents;
-    void* modified_stack = user_stack->contents[user_stack->num_contents];
-    return modified_stack;
-  }
-  return NULL;
+///////////////////////////////////////////////////////////////////
+//Creates the stream of tokens for use in stack processing later.//
+///////////////////////////////////////////////////////////////////
+struct token_stream* create_token_stream(char* input, int num_of_chars){
+    //Create the token node list
+    struct token_node_list* new_token_list= malloc(sizeof(struct token_node_list));
+    struct token_node_list* list_iterator = new_token_list;
+    list_iterator->head = new_token_list;
 
+
+    
+    char char_to_sort = *input;
+    //char next_char = *input;
+    
+    int char_num_counter = 0;
+    while(char_num_counter < num_of_chars){
+        //Check to see if word
+        if(isWord(char_to_sort)){
+            //If so, store the word in its own token
+            int word_index = 0;
+            char* w = malloc(sizeof(char));
+            if( w == NULL)
+                fprintf(stderr, "\n Error allocating memory for word.");
+            
+            while(isWord(char_to_sort)){
+                w[word_index] = char_to_sort;
+                word_index++;
+                
+                w = realloc(w, (word_index+1)*sizeof(char));
+                if(w == NULL)
+                    fprintf(stderr, "\n Error allocating memory for word.");
+
+                char_num_counter++;     //increment index
+                input++;                //increment stream pointer
+                char_to_sort = *input;
+                
+                if(char_num_counter ==  num_of_chars)
+                    break;
+            }
+            list_iterator->next = add_token(new_token_list, w, WORD);
+            list_iterator = list_iterator->next;
+        }
+        //Check for subshell
+        else if( char_to_sort == '('){
+          //TODO
+            
+        }
+        //Check for OR and PIPE
+        else if(char_to_sort == '|'){
+            char_num_counter++;
+            input++; //increment pointer
+            char_to_sort = *input;
+            //Check to see if the next character is also a pipe, this is an OR
+            if(char_to_sort == '|'){
+                //Add a token node for OR
+                list_iterator->next = add_token(new_token_list, char_to_sort, OR);
+                list_iterator = list_iterator->next;
+            }else if(char_to_sort != '|'){ //PIPE
+                list_iterator->next = add_token(new_token_list, char_to_sort, PIPE);
+                list_iterator = list_iterator->next;
+            }
+        }
+        
+        //Check for & and AND, code is same as OR case
+        else if(char_to_sort == '&'){
+            char_num_counter++;
+            input++;                    //increment pointer
+            char_to_sort = *input;         //peek at the next character
+            
+            if(char_to_sort == '&'){       //This is an and
+                list_iterator->next = add_token(new_token_list, char_to_sort, AND);
+                list_iterator = list_iterator->next;
+            }else if(char_to_sort != '&'){
+                return NULL;
+            }
+        }
+        
+        //Check for left redirect
+        else if(char_to_sort == '<'){
+            list_iterator->next = add_token(new_token_list, char_to_sort, LEFT_REDIRECT);
+            list_iterator = list_iterator->next;
+            
+            char_num_counter++;
+            input++;                    //increment pointer
+            char_to_sort = *input;         //peek at the next character
+        }
+        //Check for right redirect
+        else if(char_to_sort == '>'){
+            list_iterator->next = add_token(new_token_list, char_to_sort, RIGHT_REDIRECT);
+            list_iterator = list_iterator->next;
+            
+            char_num_counter++;
+            input++;                    //increment pointer
+            char_to_sort = *input;         //peek at the next character
+        }
+        
+        
+        //Check for semicolon
+        else if(char_to_sort == ';'){
+            list_iterator->next = add_token(new_token_list, char_to_sort, SEMICOLON);
+            list_iterator = list_iterator->next;
+            
+            char_num_counter++;     //increment index
+            input++;                //increment stream pointer
+            char_to_sort = *input;
+            
+        }
+        
+        //default: Give up and return NULL
+    }
+    //Return pointer to the top of the token_stream
+    return new_token_list;
 }
-
-
+                           
+                           
+                           
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
 		     void *get_next_byte_argument)
 {
-  /* FIXME: Replace this with your implementation.  You may need to
-     add auxiliary functions and otherwise modify the source code.
-     You can also use external functions defined in the GNU C Library.  */
-  error (1, 0, "command reading not yet implemented");
-  return 0;
+    //Take the full stream of chars in the command line and place them in a buffer
+    int buffer_scalar = 20; //Good enough for 20 chars
+    char* input_stream = malloc(buffer_scalar * sizeof(char));
+    if(input_stream == NULL)
+        fprintf(stderr, "Failed to allocate memory for input_stream. \n");
+    
+    char next_input_char = ' ';
+    long int char_num = 0;
+    
+    while(1){
+        next_input_char = getbyte(arg);
+        if(next_input_char == -1 || next_input_char == EOF)
+            break;
+        
+        if(next_input_char == '#'){ // this is a comment, skip until EOF or newline
+            while((next_input_char != EOF) && (next_input_char != '\n') && (next_input_char != -1)){
+                next_input_char = getbyte(arg);
+            }
+        }
+        
+        //Start loading stuff into input_stream buffer
+        input_stream[char_num] = next_input_char;
+        //We need to add a char, so increment the input_size counter
+        char_num++;
+        
+        //Our small buffer needs to be reallocated every time now
+        if(char_num > 20){
+            input_stream = realloc(input_stream, (char_num)*sizeof(char));
+            if(input_stream == NULL)
+                fprintf(stderr, "Failed to reallocate memory for input_stream. \n");
+        }
+    }
+    //Check to see if nothing was pulled from command line
+    if(char_num == 0){
+        free(input_stream);
+        return NULL;
+    }
+    
+    //If we've reached here a buffer has been created
+    //Make streams
+    
+    
+    
+    free(input_stream)
+    return command_stream;
 }
+
 
 command_t
 read_command_stream (command_stream_t s)
