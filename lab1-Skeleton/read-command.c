@@ -166,7 +166,7 @@ struct cmd_node * add_cmd_node (struct cmd_node_list * c_list, struct command * 
 
 
 
-command_t combine (command_t first, command_t second, char *operand) {
+command_t combine (command_t first, command_t second, char *operator) {
   command_t combined = malloc (sizeof (struct command));
   combined->input=NULL;
   combined->u.command[1]=second;
@@ -174,8 +174,8 @@ command_t combine (command_t first, command_t second, char *operand) {
   combined->status=-1;
   combined->output=NULL;
   int length;
-  if (operand[0] == '>' || operand[0] == '<'){
-    switch (operand[0]) {
+  if (operator[0] == '>' || operator[0] == '<'){
+    switch (operator[0]) {
     case '>':
       combined->input = first->input;
       length = strlen(second->u.word[0]);
@@ -192,13 +192,13 @@ command_t combine (command_t first, command_t second, char *operand) {
     return combined;
   }
     
-  if (operand[0]=='&' && operand[1]=='&'){
+  if (operator[0]=='&' && operator[1]=='&'){
       combined->type = AND_COMMAND;
   }
-  if (operand[0]=='|' && operand[1]=='|'){
+  if (operator[0]=='|' && operator[1]=='|'){
       combined->type = OR_COMMAND;
   }
-  switch (operand[0]) {
+  switch (operator[0]) {
   case ';':
     combined->type = SEQUENCE_COMMAND;
     break;
@@ -276,14 +276,19 @@ command_t c_simple(char *s) {
     simple->u.word[arguments] = NULL;
     return simple;
 }
-          
-command_t create (struct token_node_list *list, struct command_node_list *cmd_list){
+
+
+///////////////////////////////////////////////////////////////////
+//Populate a command tree to be used for printing out commands.  //
+///////////////////////////////////////////////////////////////////
+command_t create_tree (struct token_node_list *list){
     list->cur_node = list->head;
     command_t cmd = malloc(sizeof(struct command));
     struct token_node * current_node = next_token(list);
     
     struct stack * command_stack = create_stack(50);
     struct stack * operator_stack = create_stack(50);
+    
     char *t_word = current_node->token;
     while (current_node != NULL) {
         if (isWord(t_word[0])) {
@@ -499,6 +504,64 @@ struct token_stream* create_token_stream(char* input, int num_of_chars){
         //Check for subshell
         else if( char_to_sort == '('){
           //TODO
+            int num_pairs = 1;
+            int open_pars = 1;
+            int close_pars = 0;
+            int parens_valid = 0;
+            
+            int index = 0;
+            int buf_size = 10;      //random low num for most purposes
+            
+            char *ss_buf = malloc(buf_size* sizeof(char));
+            if(ss_buf == NULL)
+                fprintf(stderr, "\n Error allocating memory for subshell parse.\n");
+            
+            while(num_pairs>0){
+                char_num_counter++;     //increment index
+                input++;                //increment stream pointer
+                char_to_sort = *input;
+                if(char_num_counter == num_of_chars) //gone through all chars
+                    return NULL;
+                else if(char_to_sort == '('){
+                    open_pars++;
+                    num_pairs++;
+                }
+                else if(char_to_sort == ')'){
+                    close_pars++;
+                    num_pairs--;
+                    parens_valid = open_pars-close_pars;
+                    if( num_pairs == 0 && parens_valid == 0)
+                        break;
+                    else if(num_pairs == 0 && parens_valid != 0){
+                        fprintf(stderr, "\n Mismatched parentheses.\n");
+                        return NULL;
+                    }
+                        
+                }
+                else if(char_to_sort == '\n'){
+                    while(1){                        //Eliminate useless characters
+                        if(input[1] == ' ' || input[1] == '\v' || input[1] == '\r' || input[1] == '\t' || input[1] == '\n')
+                            break;
+                        input++;
+                        char_to_sort++;
+                    }
+                    //Spec says to substitute semicolon for \n
+                    char_to_sort = ';';
+                }
+                ss_buf[index] = char_to_sort;
+                index++;
+                
+                if(index == buf_size){
+                    buf_size+=2;
+                    ss_buf = realloc(ss_buf, buf_size*sizeof(char));
+                    if(ss_buf == NULL){
+                        fprintf(stderr, "\n Error reallocating memory for subshell buffer.\n");
+                        return NULL;
+                    }
+                }
+                list_iterator->next = add_token(new_token_list, ss_buf, SUBSHELL);
+                list_iterator = list_iterator->next;
+            }
             
         }
         //Check for OR and PIPE
@@ -560,15 +623,17 @@ struct token_stream* create_token_stream(char* input, int num_of_chars){
             input++;                //increment stream pointer
             char_to_sort = *input;
             
+        }else{
+            fprintf(stderr,"\nCharacter is not a word or a special token.\n");
+            return NULL;    //no character matches
         }
-        
-        //default: Give up and return NULL
     }
     //Return pointer to the top of the token_stream
     return new_token_list;
 }
                            
-                           
+
+
                            
 command_stream_t
 make_command_stream (int (*get_next_byte) (void *),
