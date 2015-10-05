@@ -603,8 +603,8 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         //Handle newline
         else if(char_to_sort == '\n'){
             switch(new_token_list->cur_node->token_type){
-                case LEFT:
-                case RIGHT:
+                case LEFT_REDIRECT:
+                case RIGHT_REDIRECT:
                     fprintf(stderr, "\n Error in syntax. Redirect before newline.\n");
                     return NULL;
                     break;
