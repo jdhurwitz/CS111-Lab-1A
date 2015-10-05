@@ -27,6 +27,7 @@ struct command_stream{
 
 
 enum token_name{
+    DUMMY_HEAD:
     PIPE,
     AND,
     OR,
@@ -436,9 +437,13 @@ command_t create_tree (struct token_node_list *list){
 //Creates the stream of tokens for use in stack processing later.//
 ///////////////////////////////////////////////////////////////////
 struct token_node_list* create_token_stream(char* input, int num_of_chars){
+    
     //Create the token node list
     struct token_node_list* new_token_list= malloc(sizeof(struct token_node_list));
-    new_token_list->head = NULL;
+    //Make dummy token in order to avoid NULL token_type pointer
+    struct token_node* dummy_head = add_token(new_token_list, NULL,DUMMY_HEAD)
+    new_token_list->head = dummy_head;
+
     struct token_node_list* list_iterator = new_token_list;
     list_iterator->head = new_token_list->head; 
     
