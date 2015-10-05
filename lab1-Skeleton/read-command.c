@@ -624,7 +624,10 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     new_token_list = new_token_list->next;
                     break;
                 default:
-                    return NULL;
+                    if(new_token_list->cur_node->token_type == DUMMY_HEAD)
+                        break;
+                    else
+                        return NULL;
             }
             char_num_counter++;
             input++;                    //increment pointer
