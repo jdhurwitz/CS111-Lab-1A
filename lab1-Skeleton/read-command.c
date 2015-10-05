@@ -600,7 +600,31 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             char_to_sort = *input;         //peek at the next character
         }
         
-        
+        //Handle newline
+        else if(char_to_sort == '\n'){
+            switch(new_token_list->cur_node->token_type){
+                case LEFT:
+                case RIGHT:
+                    fprintf(stderr, "\n Error in syntax. Redirect before newline.\n");
+                    return NULL;
+                    break;
+                case WORD:
+                case SUBSHELL:
+                    new_token_list->next = malloc(sizeof(struct token_node_list));
+                    if(new_token_list->next == NULL){
+                        fprintf(stderr, "\nError allocating memory for new tree in create_token_stream.\n");
+                        return NULL;
+                    }
+                    
+                    new_token_list = new_token_list->next;
+                    break;
+                default:
+                    return NULL;
+            }
+            char_num_counter++;
+            input++;                    //increment pointer
+            char_to_sort = *input;         //peek at the next character
+        }
         //Check for semicolon
         else if(char_to_sort == ';'){
             new_token_list->cur_node = add_token(new_token_list, w, SEMICOLON);
