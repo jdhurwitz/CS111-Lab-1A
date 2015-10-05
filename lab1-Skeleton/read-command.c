@@ -492,8 +492,10 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 char_num_counter++;     //increment index
                 input++;                //increment stream pointer
                 char_to_sort = *input;
-                if(char_num_counter == num_of_chars) //gone through all chars
+                if(char_num_counter == num_of_chars){ //gone through all chars
+                    fprintf(stderr, "\nAll characters used.\n");
                     return NULL;
+                }
                 else if(char_to_sort == '('){
                     open_pars++;
                     num_pairs++;
@@ -570,6 +572,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 //list_iterator->next = add_token(new_token_list, char_to_sort, AND);
                 //list_iterator = list_iterator->next;
             }else if(char_to_sort != '&'){
+                fprintf(stderr, "\n Single and...error.\n");
                 return NULL;
             }
         }
