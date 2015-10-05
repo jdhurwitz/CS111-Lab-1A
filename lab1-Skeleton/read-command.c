@@ -27,7 +27,7 @@ struct command_stream{
 
 
 enum token_name{
-    DUMMY_HEAD:
+    DUMMY_HEAD,
     PIPE,
     AND,
     OR,
