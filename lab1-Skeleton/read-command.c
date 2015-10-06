@@ -434,10 +434,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 input++;                    //increment pointer
                 char_to_sort = *input;         //peek at the next character
 
-            }else if(char_to_sort != '|'){ //PIPE
+            }else
                 new_token_list->cur_node = add_token(new_token_list, NULL, PIPE);
 
-            }
         }
         
         //Check for & and AND, code is same as OR case
