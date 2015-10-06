@@ -626,14 +626,15 @@ command_t create_tree (struct token_node *token){
     command_t cmd = malloc(sizeof(struct command));
     command_t cmd_prev = NULL;
     struct token_node * current_node = token;
+    int first_run = 1;
     
     //Create operator and command stack of size 50
     struct stack* command_stack = create_stack(50);
     struct stack* operator_stack = create_stack(50);
     
 
-    while(current_node->next_node != NULL){
-        
+    while(current_node->next_node != NULL || first_run == 1){
+        first_run == 0;
         ///////////////// Highest priority, so can avoid checking I/O, etc.
         //////PIPE///////
         /////////////////
@@ -793,10 +794,10 @@ command_t create_tree (struct token_node *token){
     int combine_check = 0;
     while(operator_stack->num_contents >0){
 	combine_check = combine(operator_stack, command_stack);
-	if(combine_check == 0){
-	  fprintf(stderr, "\nEither not enough operands or operators in stack at end of create_tree\n");
-	  return NULL;
-	}
+        if(combine_check == 0){
+            fprintf(stderr, "\nEither not enough operands or operators in stack at end of create_tree\n");
+            return NULL;
+        }
     }
 	if(command_stack->num_contents != 1){
           fprintf(stderr, "\n Command stack != 1 items in create_tree.\n");
