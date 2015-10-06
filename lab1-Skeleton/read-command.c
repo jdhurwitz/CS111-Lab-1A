@@ -562,8 +562,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         //Handle newline
         else if(char_to_sort == '\n'){
             if(*input++ == '\000'){
-                nested_breaker = 1;
-                return;
+                return head_of_list;
                 break;
             }
                 
