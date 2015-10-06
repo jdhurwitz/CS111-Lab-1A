@@ -499,7 +499,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             char_to_sort = *input;         //peek at the next character
             
             if(char_to_sort == '&'){       //This is an and
-                new_token_list->cur_node = add_token(new_token_list, w, AND);
+                new_token_list->cur_node = add_token(new_token_list, NULL, AND);
                 
                 char_num_counter++;
                 input++;                    //increment pointer
@@ -571,7 +571,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         }
         //Check for semicolon
         else if(char_to_sort == ';'){
-            new_token_list->cur_node = add_token(new_token_list, w, SEMICOLON);
+            new_token_list->cur_node = add_token(new_token_list, NULL, SEMICOLON);
             
             char_num_counter++;     //increment index
             input++;                //increment stream pointer
