@@ -605,7 +605,11 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             input++;                //increment stream pointer
             char_to_sort = *input;
             
-        }else{
+        }
+        else if(char_to_sort = '\000')
+            break;
+            
+        else{
             fprintf(stderr,"\nCharacter is not a word or a special token.\n");
             return NULL;    //no character matches
         }
@@ -654,7 +658,7 @@ command_t create_tree (struct token_node *token){
         ///////////////// Lowest precedence, along with newline
         ////SEMICOLON////
         /////////////////
-        if(current_node->token_type == SEMICOLON){
+        else if(current_node->token_type == SEMICOLON){
             cmd->type = SEQUENCE_COMMAND;
             if(combine(operator_stack, command_stack) == 1)
                 push(operator_stack,cmd ,10);
@@ -666,7 +670,7 @@ command_t create_tree (struct token_node *token){
         /////////////////
         //LEFT REDIRECT//
         /////////////////
-        if(current_node->token_type == LEFT_REDIRECT){
+        else if(current_node->token_type == LEFT_REDIRECT){
             if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
                 fprintf(stderr, "\nFormatting issue with left redirect.\n");
                 return NULL;
@@ -688,7 +692,7 @@ command_t create_tree (struct token_node *token){
         //////////////////
         //RIGHT REDIRECT//
         //////////////////
-        if(current_node->token_type == RIGHT_REDIRECT){
+        else if(current_node->token_type == RIGHT_REDIRECT){
             if(cmd_prev->output != NULL){
                 fprintf(stderr, "\nRight redirect has output field already filled.\n");
                 return NULL;
@@ -709,7 +713,7 @@ command_t create_tree (struct token_node *token){
         ///////////////// Same precedence as OR
         ///////AND///////
         /////////////////
-        if(current_node->token_type == AND){
+        else if(current_node->token_type == AND){
             cmd->type = AND_COMMAND;
             int precedence_check = 0;
             if(view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND)
@@ -727,7 +731,7 @@ command_t create_tree (struct token_node *token){
         ////////////////// Same precedence as AND
         ////////OR///////
         /////////////////
-        if(current_node->token_type == OR){
+        else if(current_node->token_type == OR){
             cmd->type = OR_COMMAND;
             int precedence_check = 0;
             if(view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND)
@@ -744,7 +748,7 @@ command_t create_tree (struct token_node *token){
         /////////////////
         /////SUBSHELL////
         /////////////////
-        if(current_node->token_type == SUBSHELL){
+        else if(current_node->token_type == SUBSHELL){
             cmd->type = SUBSHELL_COMMAND;
             int length_of_token = strlen(current_node->token);
             struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
@@ -754,7 +758,7 @@ command_t create_tree (struct token_node *token){
         /////////////////
         //////WORD///////
         /////////////////
-        if(current_node->token_type == WORD){
+        else if(current_node->token_type == WORD){
             cmd->type = SIMPLE_COMMAND;
             //At leat one word exists
             int words = 1;
