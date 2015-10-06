@@ -29,13 +29,13 @@ struct command_stream{
 
 enum token_name{
     DUMMY_HEAD,
-    PIPE,
-    AND,
-    OR,
-    SEMICOLON,
+    SUBSHELL,
     LEFT_REDIRECT,
     RIGHT_REDIRECT,
-    SUBSHELL,
+    AND,
+    OR,
+    PIPE,
+    SEMICOLON,
     WORD
     
 };
@@ -553,10 +553,116 @@ command_t create_tree (struct token_node *token){
     
 
         do{
+            /////////////////
+            /////SUBSHELL////
+            /////////////////
+            if(current_node->token_type == SUBSHELL){
+                cmd->type = SUBSHELL_COMMAND;
+                int length_of_token = strlen(current_node->token);
+                struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
+                cmd->u.subshell_command = create_tree(token_stream->head);
+                push(operand_stack, cmd,1);
+            }
+            
+            /////////////////
+            //LEFT REDIRECT//
+            /////////////////
+            else if(current_node->token_type == LEFT_REDIRECT){
+                if(cmd_prev == NULL){
+                    fprintf(stderr, "\n cmd_prev NULL .\n");
+                    return NULL;
+                }
+                if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
+                    fprintf(stderr, "\nFormatting issue with left redirect.\n");
+                    return NULL;
+                }else if(cmd_prev->input != NULL || cmd_prev->output != NULL)
+                    return NULL;
+                else{   //Check to see if there is a SIMPLE_COMMAND after redirect
+                    current_node = next_token(current_node);
+                    if(current_node->token_type == WORD){
+                        cmd_prev->input = current_node->token;  //The input for left redir is the word of current node
+                        break;
+                    }
+                    else{
+                        fprintf(stderr, "\nThere is no word after the left redirect.\n");
+                        return NULL;
+                    }
+                }
+            }
+            
+            //////////////////
+            //RIGHT REDIRECT//
+            //////////////////
+            else if(current_node->token_type == RIGHT_REDIRECT){
+                if(cmd_prev == NULL){
+                    fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                    return NULL;
+                }
+                if(cmd_prev->output != NULL){
+                    fprintf(stderr, "\nRight redirect has output field already filled.\n");
+                    return NULL;
+                }
+                if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
+                    fprintf(stderr, "\nFormatting issue with right redirect.\n");
+                    return NULL;
+                }
+                current_node = next_token(current_node);
+                if(current_node->token_type == WORD){      //Check for SIMPLE_COMMAND
+                    cmd_prev->output = current_node->token;
+                    break;
+                }
+                //At this point we've reached a formatting error
+                fprintf(stderr, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
+            }
+            
+            ///////////////// Same precedence as OR
+            ///////AND///////
+            /////////////////
+            else if(current_node->token_type == AND){
+                cmd->type = AND_COMMAND;
+                int precedence_check = 0;
+                int empty = 0;
+                if(operator_stack->num_contents == 0)
+                    empty = 1;
+                
+                
+                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
+                    precedence_check = 1;
+                if(precedence_check && (operator_stack->num_contents > 0)){
+                    if(combine(operator_stack, operand_stack) == 0){
+                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
+                        return NULL;
+                    }
+                }
+                push(operator_stack, cmd, 1);
+                
+            }
+            ////////////////// Same precedence as AND
+            ////////OR///////
+            /////////////////
+            else if(current_node->token_type == OR){
+                cmd->type = OR_COMMAND;
+                int precedence_check = 0;
+                int empty = 0;
+                if(operator_stack->num_contents == 0)
+                    empty = 1;
+                
+                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
+                    precedence_check = 1;
+                if(precedence_check && (operator_stack->num_contents > 0)){
+                    if(combine(operator_stack, operand_stack) == 0){
+                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
+                        return NULL;
+                    }
+                }
+                push(operator_stack, cmd, 1);
+            }
+
+            
         ///////////////// Highest priority, so can avoid checking I/O, etc.
         //////PIPE///////
         /////////////////
-        if(current_node->token_type == PIPE){
+        else if(current_node->token_type == PIPE){
             cmd->type = PIPE_COMMAND;
             if((operator_stack->num_contents > 0) && (view_top(operator_stack)->type == PIPE_COMMAND)){
                 int combine_result = combine(operator_stack, operand_stack);
@@ -581,111 +687,8 @@ command_t create_tree (struct token_node *token){
             }
                 
         }
-        /////////////////
-        //LEFT REDIRECT//
-        /////////////////
-        else if(current_node->token_type == LEFT_REDIRECT){
-            if(cmd_prev == NULL){
-                fprintf(stderr, "\n cmd_prev NULL .\n");
-                return NULL;
-            }
-            if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
-                fprintf(stderr, "\nFormatting issue with left redirect.\n");
-                return NULL;
-            }else if(cmd_prev->input != NULL || cmd_prev->output != NULL)
-                return NULL;
-            else{   //Check to see if there is a SIMPLE_COMMAND after redirect
-                current_node = next_token(current_node);
-                if(current_node->token_type == WORD){
-                    cmd_prev->input = current_node->token;  //The input for left redir is the word of current node
-                    break;
-                }
-                else{
-                    fprintf(stderr, "\nThere is no word after the left redirect.\n");
-                    return NULL;
-                }
-            }
-        }
-        
-        //////////////////
-        //RIGHT REDIRECT//
-        //////////////////
-        else if(current_node->token_type == RIGHT_REDIRECT){
-            if(cmd_prev == NULL){
-                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
-                return NULL;
-            }
-            if(cmd_prev->output != NULL){
-                fprintf(stderr, "\nRight redirect has output field already filled.\n");
-                return NULL;
-            }
-            if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
-                fprintf(stderr, "\nFormatting issue with right redirect.\n");
-                return NULL;
-            }
-            current_node = next_token(current_node);
-            if(current_node->token_type == WORD){      //Check for SIMPLE_COMMAND
-                cmd_prev->output = current_node->token;
-                break;
-            }
-            //At this point we've reached a formatting error
-            fprintf(stderr, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
-        }
-        
-        ///////////////// Same precedence as OR
-        ///////AND///////
-        /////////////////
-        else if(current_node->token_type == AND){
-            cmd->type = AND_COMMAND;
-            int precedence_check = 0;
-            int empty = 0;
-            if(operator_stack->num_contents == 0)
-                empty = 1;
-                
-            
-            if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
-                precedence_check = 1;
-            if(precedence_check && (operator_stack->num_contents > 0)){
-                if(combine(operator_stack, operand_stack) == 0){
-                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
-                    return NULL;
-                }
-            }
-            push(operator_stack, cmd, 1);
+       
 
-        }
-        
-        ////////////////// Same precedence as AND
-        ////////OR///////
-        /////////////////
-        else if(current_node->token_type == OR){
-            cmd->type = OR_COMMAND;
-            int precedence_check = 0;
-            int empty = 0;
-            if(operator_stack->num_contents == 0)
-                empty = 1;
-            
-            if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
-                precedence_check = 1;
-            if(precedence_check && (operator_stack->num_contents > 0)){
-                if(combine(operator_stack, operand_stack) == 0){
-                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
-                    return NULL;
-                }
-            }
-            push(operator_stack, cmd, 1);
-        }
-        
-        /////////////////
-        /////SUBSHELL////
-        /////////////////
-        else if(current_node->token_type == SUBSHELL){
-            cmd->type = SUBSHELL_COMMAND;
-            int length_of_token = strlen(current_node->token);
-            struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
-            cmd->u.subshell_command = create_tree(token_stream->head);
-            push(operand_stack, cmd,1);
-        }
         /////////////////
         //////WORD///////
         /////////////////
