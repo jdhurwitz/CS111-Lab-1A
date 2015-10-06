@@ -73,6 +73,7 @@ int isWord(char stream_input){
     case '@':
     case '^':
     case '_':
+    case ':':
       return 1;
     default: 
       return 0;    
@@ -329,45 +330,6 @@ command_t create_subshell_cmd(command_t c){
     cmd->u.command[1] = NULL;
     return cmd;
 }
-/*
-command_t c_simple(char *s) {
-    command_t simple = malloc(sizeof(struct command));
-    simple->status = -1;
-    simple->input = NULL;
-    simple->type = SIMPLE_COMMAND;
-    simple->output = NULL;
-    
-    char *buf = malloc (sizeof (char) * (strlen(s) + 1));
-    simple->u.word = malloc(sizeof(char*));
-    
-    int index, arguments;
-    
-    for (int i = 0; i < strlen(s); i++){
-        switch (s[i]){
-            case ' ':
-            case '\0':
-                if (index == 0){
-                    index = -1;
-                    break;
-                } else {
-                    buf[index] = '\0';
-                    simple->u.word = realloc(simple->u.word, sizeof (char*) * (arguments + 1));
-                    simple->u.word[arguments] = malloc (sizeof (char) * (index +1));
-                    strcpy (simple->u.word[arguments], buf);
-                    arguments = arguments +1;
-                    index = -1;
-                }
-                break;
-            default:
-                buf[index] = s[i];
-                break;
-        }
-        index = index +1;
-    }
-    simple->u.word[arguments] = NULL;
-    return simple;
-}
-*/
 
 
 
@@ -491,8 +453,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 }
                 new_token_list->cur_node = add_token(new_token_list, ss_buf, SUBSHELL);
                 
-                //            list_iterator->next = add_token(new_token_list, ss_buf, SUBSHELL);
-                //              list_iterator = list_iterator->next;
             }
             
         }
@@ -509,13 +469,10 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 char_num_counter++;
                 input++;                    //increment pointer
                 char_to_sort = *input;         //peek at the next character
-                //list_iterator->next = add_token(new_token_list, char_to_sort, OR);
-                //list_iterator = list_iterator->next;
+
             }else if(char_to_sort != '|'){ //PIPE
                 new_token_list->cur_node = add_token(new_token_list, w, PIPE);
-                
-                //list_iterator->next = add_token(new_token_list, char_to_sort, PIPE);
-                //list_iterator = list_iterator->next;
+
             }
         }
         
@@ -531,8 +488,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 char_num_counter++;
                 input++;                    //increment pointer
                 char_to_sort = *input;         //peek at the next character
-                //list_iterator->next = add_token(new_token_list, char_to_sort, AND);
-                //list_iterator = list_iterator->next;
             }else if(char_to_sort != '&'){
                 fprintf(stderr, "\n Single and...error.\n");
                 return NULL;
@@ -543,9 +498,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         else if(char_to_sort == '<'){
             new_token_list->cur_node = add_token(new_token_list, w, LEFT_REDIRECT);
             
-            //list_iterator->next = add_token(new_token_list, char_to_sort, LEFT_REDIRECT);
-            //list_iterator = list_iterator->next;
-            
             char_num_counter++;
             input++;                    //increment pointer
             char_to_sort = *input;         //peek at the next character
@@ -553,9 +505,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         //Check for right redirect
         else if(char_to_sort == '>'){
             new_token_list->cur_node = add_token(new_token_list, w, RIGHT_REDIRECT);
-            
-            //list_iterator->next = add_token(new_token_list, char_to_sort, RIGHT_REDIRECT);
-            //list_iterator = list_iterator->next;
+
             
             char_num_counter++;
             input++;                    //increment pointer
@@ -607,9 +557,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         else if(char_to_sort == ';'){
             new_token_list->cur_node = add_token(new_token_list, w, SEMICOLON);
             
-            //list_iterator->next = add_token(new_token_list, char_to_sort, SEMICOLON);
-            //list_iterator = list_iterator->next;
-            
             char_num_counter++;     //increment index
             input++;                //increment stream pointer
             char_to_sort = *input;
@@ -636,7 +583,6 @@ command_t create_tree (struct token_node *token){
     command_t cmd = malloc(sizeof(struct command));
     command_t cmd_prev = NULL;
     struct token_node * current_node = token;
-    int first_run = 1;
     
     //Create operator and command stack of size 50
     struct stack* command_stack = create_stack(50);
@@ -668,7 +614,7 @@ command_t create_tree (struct token_node *token){
             if(combine(operator_stack, command_stack) == 1)
                 push(operator_stack,cmd ,10);
             else{
-                fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty.\n");
+                fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
             }
                 
         }
@@ -678,6 +624,7 @@ command_t create_tree (struct token_node *token){
         else if(current_node->token_type == LEFT_REDIRECT){
             if(cmd_prev == NULL){
                 fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                return NULL;
             }
             if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
                 fprintf(stderr, "\nFormatting issue with left redirect.\n");
@@ -701,6 +648,10 @@ command_t create_tree (struct token_node *token){
         //RIGHT REDIRECT//
         //////////////////
         else if(current_node->token_type == RIGHT_REDIRECT){
+            if(cmd_prev == NULL){
+                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                return NULL;
+            }
             if(cmd_prev->output != NULL){
                 fprintf(stderr, "\nRight redirect has output field already filled.\n");
                 return NULL;
@@ -733,7 +684,7 @@ command_t create_tree (struct token_node *token){
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
                 if(combine(operator_stack, command_stack) == 0){
-                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty.\n");
+                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
                     return NULL;
                 }
             }
@@ -755,7 +706,7 @@ command_t create_tree (struct token_node *token){
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
                 if(combine(operator_stack, command_stack) == 0){
-                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty.\n");
+                    fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
                     return NULL;
                 }
             }
