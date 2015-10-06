@@ -951,10 +951,9 @@ read_command_stream (struct command_stream* s)
     if(s->next == NULL)
         s->command = NULL;
     else{
-        struct command_Stream *cmd_node_print = next_command_stream(s);
+        struct command_stream *cmd_node_print = next_command_stream(s);
         s->command = s->next->command;
         s->next = next_command_stream(next_command_stream(s));
-        free(next);
     }
     return cmd_return;
 }
