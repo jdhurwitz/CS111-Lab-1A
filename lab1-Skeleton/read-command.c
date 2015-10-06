@@ -140,14 +140,14 @@ command_t view_top (struct stack *stack) {
     }
 }
 
-void* pop(struct stack *user_stack){
+command_t pop(struct stack *user_stack){
     if(user_stack->max_contents <=0 || user_stack->num_contents <= 0){
         return NULL;
     }
     else{
         int new_num_contents = user_stack->num_contents -1;
         user_stack->num_contents = new_num_contents;
-        void* modified_stack = user_stack->contents[user_stack->num_contents];
+        command_t modified_stack = user_stack->contents[user_stack->num_contents];
         return modified_stack;
     }
     return NULL;
