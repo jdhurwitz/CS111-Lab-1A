@@ -665,7 +665,7 @@ command_t create_tree (struct token_node *token){
         //////////////////
         else if(current_node->token_type == RIGHT_REDIRECT){
             if(cmd_prev == NULL){
-                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                fprintf(stderr, "\n cmd_prev NULL in right redirect.\n");
                 return NULL;
             }
             if(cmd_prev->output != NULL){
