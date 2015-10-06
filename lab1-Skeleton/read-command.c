@@ -108,7 +108,7 @@ int is_operator(char test){
 struct stack{
     int num_contents;
     int max_contents;
-    command_t* contents;
+    command_t** contents;
 };
 
 void remove_stack (struct stack *stack) {
