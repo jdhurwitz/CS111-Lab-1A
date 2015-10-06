@@ -379,6 +379,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
     
     //Create the token node list
     struct token_node_list* new_token_list= malloc(sizeof(struct token_node_list));
+    struct token_node_list* head_of_list = new_token_list;
     //Make dummy token in order to avoid NULL token_type pointer
     struct token_node* dummy_head = add_token(new_token_list, NULL,DUMMY_HEAD);
     new_token_list->head = dummy_head;
@@ -573,9 +574,13 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                             fprintf(stderr, "\nError allocating memory for new tree in create_token_stream.\n");
                             return NULL;
                         }
-                    
+                        
+                        
                         new_token_list = new_token_list->next;
+                        if(new_token_list == NULL)
+                            fprintf(stderr, "\n new_token_list is NULL in handling newline\n");
                         new_token_list->head = add_token( new_token_list, NULL,DUMMY_HEAD);
+
                     }
                     break;
                 default:
@@ -606,7 +611,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         }
     }
     //Return pointer to the top of the token_stream
-    return new_token_list;
+    return head_of_list;
 }
 
 
@@ -816,6 +821,7 @@ command_stream_t make_forest (struct token_node_list *list) {
         struct token_node* current = list->head->next_node;
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
+
         
         current_tree = malloc(sizeof(struct command_stream));
         if (current_tree == NULL){
@@ -929,10 +935,14 @@ make_command_stream (int (*get_next_byte) (void *),
     //Make streams
     struct token_node_list* stream = create_token_stream(input_stream, char_num);
     if (stream == NULL) {
-	fprintf(stderr, "\n stream is null");
-	return NULL;
+        fprintf(stderr, "\n stream is null");
+        return NULL;
     }
     command_stream_t cs = make_forest(stream);
+    if (cs == NULL) {
+        fprintf(stderr, "\n command stream is null after command forest created \n");
+        return NULL;
+    }
     
     free(input_stream);
     //Deal with freeing the linked list
