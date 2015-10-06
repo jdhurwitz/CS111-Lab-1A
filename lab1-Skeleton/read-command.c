@@ -798,8 +798,8 @@ command_t create_tree (struct token_node *token){
                 cmd->u.word[words] = NULL;
             push(command_stack, cmd, 1);
         }
-      cmd_prev = cmd;   
-    } while(current_node != NULL && current_node->next_node != NULL);
+      cmd_prev = cmd;
+    } while(current_node != NULL && (current_node = current_node->next_node) != NULL);
     
     int combine_check = 0;
     while(operator_stack->num_contents >0){
