@@ -676,7 +676,10 @@ command_t create_tree (struct token_node *token){
         //LEFT REDIRECT//
         /////////////////
         else if(current_node->token_type == LEFT_REDIRECT){
-            if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
+            if(cmd_prev == NULL){
+                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+            }
+            if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
                 fprintf(stderr, "\nFormatting issue with left redirect.\n");
                 return NULL;
             }else if(cmd_prev->input != NULL || cmd_prev->output != NULL)
