@@ -364,7 +364,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             size_t size = 6;
 
             char* w = checked_malloc(size);
-            int word_index = 0;
+            size_t word_index = 0;
             if( w == NULL)
                 fprintf(stderr, "\n Error allocating memory for word.");
             /*
@@ -480,14 +480,14 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             //Check to see if the next character is also a pipe, this is an OR
             if(char_to_sort == '|'){
                 //Add a token node for OR
-                new_token_list->cur_node = add_token(new_token_list, w, OR);
+                new_token_list->cur_node = add_token(new_token_list, NULL, OR);
                 
                 char_num_counter++;
                 input++;                    //increment pointer
                 char_to_sort = *input;         //peek at the next character
 
             }else if(char_to_sort != '|'){ //PIPE
-                new_token_list->cur_node = add_token(new_token_list, w, PIPE);
+                new_token_list->cur_node = add_token(new_token_list, NULL, PIPE);
 
             }
         }
@@ -512,7 +512,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         
         //Check for left redirect
         else if(char_to_sort == '<'){
-            new_token_list->cur_node = add_token(new_token_list, w, LEFT_REDIRECT);
+            new_token_list->cur_node = add_token(new_token_list, NULL, LEFT_REDIRECT);
             
             char_num_counter++;
             input++;                    //increment pointer
@@ -520,7 +520,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         }
         //Check for right redirect
         else if(char_to_sort == '>'){
-            new_token_list->cur_node = add_token(new_token_list, w, RIGHT_REDIRECT);
+            new_token_list->cur_node = add_token(new_token_list, NULL, RIGHT_REDIRECT);
 
             
             char_num_counter++;
