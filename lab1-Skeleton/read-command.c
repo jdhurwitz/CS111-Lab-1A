@@ -639,7 +639,7 @@ command_t create_tree (struct token_node *token){
         /////////////////
         else if(current_node->token_type == LEFT_REDIRECT){
             if(cmd_prev == NULL){
-                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                fprintf(stderr, "\n cmd_prev NULL .\n");
                 return NULL;
             }
             if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
@@ -665,7 +665,7 @@ command_t create_tree (struct token_node *token){
         //////////////////
         else if(current_node->token_type == RIGHT_REDIRECT){
             if(cmd_prev == NULL){
-                fprintf(stderr, "\n cmd_prev NULL in right redirect.\n");
+                fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
                 return NULL;
             }
             if(cmd_prev->output != NULL){
@@ -794,7 +794,7 @@ command_t create_tree (struct token_node *token){
 	}
 	//
 	command_t final_tree = pop(operand_stack);
-	free(operand_stack);
+	free(command_stack);
 	free(operator_stack);
 	return final_tree;
     
@@ -947,18 +947,18 @@ make_command_stream (int (*get_next_byte) (void *),
 command_t
 read_command_stream (command_stream_t s)
 {
-    if(s == NULL || s->cur_node == NULL){
+    if(s == NULL || s->command == NULL){
         fprintf(stderr, "\nCommand stream in read command is NULL.\n");
         return NULL;
     }
     command_t cmd_return= s->command;
     
-    if(s->next == NULL)
-        s->command = NULL;
-    else{
-        struct command_stream *cmd_node_print = next_command_stream(s);
+    if(s->next != NULL){
+        command_stream_t next = s->next;
         s->command = s->next->command;
-        s->next = next_command_stream(next_command_stream(s));
-    }
-    return cmd_return;
+        s->next = s->next->next;
+    }else
+        s->command = NULL;
+    
+    return(cmd_return);
 }
