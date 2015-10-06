@@ -394,6 +394,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
     char* w = malloc(sizeof(char));
     int char_num_counter = 0;
     while(char_num_counter < num_of_chars){
+        if(char_to_sort == '\000'){
+            return head_of_list;
+        }
         //Check to see if word
         if(isWord(char_to_sort)){
             //If so, store the word in its own token
