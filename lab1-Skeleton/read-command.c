@@ -606,7 +606,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             char_to_sort = *input;
             
         }
-        else if(char_to_sort = '\000'){
+        else if(char_to_sort == '\000'){
             break;
         }
             
