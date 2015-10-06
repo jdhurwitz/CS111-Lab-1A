@@ -579,10 +579,11 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     }
                     break;
                 default:
-                    if(new_token_list->cur_node->token_type == DUMMY_HEAD)
-                        break;
-                    else
-                    return NULL;
+                    break;
+                    //if(new_token_list->cur_node->token_type == DUMMY_HEAD)
+                      //  break;
+                    //else
+                    //return NULL;
             }
             char_num_counter++;
             input++;                    //increment pointer
@@ -812,7 +813,7 @@ command_stream_t make_forest (struct token_node_list *list) {
     struct command_stream* tail_tree = NULL;
     
     while (list != NULL && list->head->next_node != NULL && 1) {
-        struct token_node* current = list->head;
+        struct token_node* current = list->head->next_node;
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
         
