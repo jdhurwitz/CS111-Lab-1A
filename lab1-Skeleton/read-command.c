@@ -73,7 +73,6 @@ int isWord(char stream_input){
     case '@':
     case '^':
     case '_':
-    case ':':
       return 1;
     default: 
       return 0;    
