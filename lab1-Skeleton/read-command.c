@@ -108,7 +108,7 @@ int is_operator(char test){
 struct stack{
     int num_contents;
     int max_contents;
-    command_t** contents;
+    void** contents;
 };
 
 void remove_stack (struct stack *stack) {
@@ -121,7 +121,7 @@ void remove_stack (struct stack *stack) {
     return;
 }
 
-void push (struct stack *stack, command_t *val, int increase_size) {
+void push (struct stack *stack, void *val, int increase_size) {
     if (stack->num_contents == stack->max_contents) {
         stack->max_contents = stack->max_contents + increase_size;
         stack->contents = realloc (stack->contents, stack->max_contents * sizeof(void));
@@ -771,6 +771,7 @@ command_stream_t make_forest (struct token_node_list *list) {
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
         
+        //Test
         current_tree->command = command_node;
         
         if (current_tree == NULL){
