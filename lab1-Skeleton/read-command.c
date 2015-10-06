@@ -871,7 +871,10 @@ command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_sta
               command_t combined_cmd = NULL;
               //Look for two commands and consolidate for precedence issues later.
               //Second command will be on the top of the stack
-              switch(op[0]){
+              int s = 1;
+              switch(s){
+                  case 1:
+                      break;
                   case '<':
                   case '>':
                   case '\n':
