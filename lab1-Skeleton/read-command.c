@@ -7,6 +7,7 @@
 #include <error.h>
 #include <stdlib.h>
 #include <string.h>
+#include <alloc.h>
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
@@ -362,9 +363,10 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         if(isWord(char_to_sort)){
             //If so, store the word in its own token
             int word_index = 0;
+            size_t size = 6;
             if( w == NULL)
                 fprintf(stderr, "\n Error allocating memory for word.");
-            
+            /*
             while(isWord(char_to_sort)){
                 w[word_index] = char_to_sort;
                 word_index++;
@@ -379,7 +381,21 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 
                 if(char_num_counter ==  num_of_chars)
                     break;
-            }          
+            }        
+             */
+            do{
+                w[word_index] = char_to_sort;
+                word_index++;
+                
+                if(word_index == size){
+                    size = size*2;
+                    w = checked_grow_alloc(w, &size);
+                }
+                char_num_counter++;     //increment index
+                input++;                //increment stream pointer
+                char_to_sort = *input;
+                
+            }while(isWord(char_to_sort) && char_num_counter < num_of_chars);
             new_token_list->cur_node = add_token(new_token_list, w, WORD);
             
         }
