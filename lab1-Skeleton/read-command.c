@@ -771,8 +771,6 @@ command_stream_t make_forest (struct token_node_list *list) {
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
         
-        //Test
-        current_tree->command->type = PIPE_COMMAND;
         current_tree->command = command_node;
         
         if (current_tree == NULL){
