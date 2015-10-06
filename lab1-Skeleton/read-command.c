@@ -311,12 +311,11 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         //Check to see if word
         if(isWord(char_to_sort)){
             //If so, store the word in its own token
-            size_t size = 6;
+            size_t size = 8;
 
             char* w = checked_malloc(size);
             size_t word_index = 0;
-            if( w == NULL)
-                fprintf(stderr, "\n Error allocating memory for word.");
+
             /*
             while(isWord(char_to_sort)){
                 w[word_index] = char_to_sort;
@@ -334,6 +333,8 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     break;
             }        
              */
+            
+            
             do{
                 w[word_index] = char_to_sort;
                 word_index++;
@@ -350,6 +351,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             new_token_list->cur_node = add_token(new_token_list, w, WORD);
             
         }
+        
         //Handle useless white space
         else if(char_to_sort == ' ' || char_to_sort == '\t'){
             char_num_counter++;     //increment index
@@ -684,6 +686,7 @@ command_t create_tree (struct token_node *token){
                 push(operator_stack,cmd ,10);
             else{
                 fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
+                return NULL;
             }
                 
         }
@@ -741,7 +744,7 @@ command_t create_tree (struct token_node *token){
     }
 	if(operand_stack->num_contents != 1){
           fprintf(stderr, "\n Command stack != 1 items in create_tree.\n");
-	  return NULL;
+          return NULL;
 	}
 	//
 	command_t final_tree = pop(operand_stack);
@@ -767,7 +770,9 @@ command_stream_t make_forest (struct token_node_list *list) {
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
-
+        
+        //Test
+        current_tree->command->type = PIPE_COMMAND;
         current_tree->command = command_node;
         
         if (current_tree == NULL){
