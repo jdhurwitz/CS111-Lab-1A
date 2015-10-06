@@ -638,8 +638,7 @@ command_t create_tree (struct token_node *token){
     struct stack* operator_stack = create_stack(50);
     
 
-    while(current_node->next_node != NULL || first_run == 1){
-        first_run = 0;
+        do{
         ///////////////// Highest priority, so can avoid checking I/O, etc.
         //////PIPE///////
         /////////////////
@@ -795,7 +794,8 @@ command_t create_tree (struct token_node *token){
             push(command_stack, cmd, 1);
         }
       cmd_prev = cmd;   
-    } 
+    } while(current_node->next_node != NULL);
+    
     int combine_check = 0;
     while(operator_stack->num_contents >0){
 	combine_check = combine(operator_stack, command_stack);
