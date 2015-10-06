@@ -358,79 +358,7 @@ command_t c_simple(char *s) {
 }
 */
 
-///////////////////////////////////////////////////////////////////
-//Populate a command tree to be used for printing out commands.  //
-///////////////////////////////////////////////////////////////////
 
-/*
-command_t create_tree (struct token_node_list *list){
-    list->cur_node = list->head;
-    command_t cmd = malloc(sizeof(struct command));
-    struct token_node * current_node = next_token(list);
-    
-    //Create operator and command stack of size 50
-    struct stack * command_stack = create_stack(50);
-    struct stack * operator_stack = create_stack(50);
-    
-    char *t_word = current_node->token;
-    while (current_node != NULL) {
-        if (isWord(t_word[0])) {
-            push(command_stack, t_word, sizeof(t_word));
-        }
-        if (t_word[0] == '(') {
-            push(command_stack, t_word[0], sizeof(t_word[0]));
-        }
-        if (is_operator(t_word[0]) {
-            if (operator_stack->num_contents==0){
-                push(operator_stack, t_word[0], sizeof(t_word[0]));
-            } else if (operator_stack->num_contents!=0) {
-                if(t_word[0] == '|') {
-                    //Stack not empty
-                    while(operator_stack->num_contents != 0 && (view_top(command_stack)->command->type != SUBSHELL_COMMAND){
-                        if(view_top(operator_stack)->command->type == PIPE_COMMAND){
-                            //Combine commands into pipe, top of stack will be 2nd
-                            command_t first_cmd = view_top(command_stack)->command;
-                            pop(command_stack);
-                            command_t second_cmd = view_top(command_stack)->command;
-                            pop(command_stack);
-                            
-                            char *operator_to_combine = view_top(operator_stack)
-                            combine(first_cmd, second_cmd, operator_to_combine);
-                            pop(operator_stack);
-                        }else {
-                            break;
-                        }
-                    }
-                          cmd_node_list->cur_node->cmd->command->type   = PIPE_COMMAND;
-                          cmd_node_list->cur_node->cmd->command->input  = NULL;
-                          cmd_node_list->cur_node->cmd->command->output = NULL;
-                } else if (t_word[0] == '&' && t_word[1] == '&'){
-                    cmd_list->cur_node->cmd->command->type= AND_COMMAND;
-                    cmd_list->cur_node->cmd->command->input = NULL;
-                    cmd_list->cur_node->cmd->command->output = NULL;
-                    while (operator_stack->num_contents > 0 && (view_top(operator_stack)->command->type != SUBSHELL_COMMAND) {
-                        if (view_top(operator_stack)->command->type == OR_COMMAND ||
-                            view_top(operator_stack)->command->type == PIPE_COMMAND ||
-                            view_top(operator_stack)->command->type == AND_COMMAND)
-                        {
-                            command_t first_cmd = view_top(command_stack)->command;
-                            pop(command_stack);
-                            command_t second_cmd = view_top(command_stack)->command;
-                            pop(command_stack);
-
-                            char *operator_to_combine = view_top(operator_stack);
-                            combine(first_cmd, second_cmd, operator_to_combine);
-                            pop(operator_stack);
-                        } else {
-                            break;
-                        }
-                }
-            }
-        }
-    }
-    
-}
-*/
 
 
 ///////////////////////////////////////////////////////////////////
@@ -478,6 +406,13 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             new_token_list->cur_node = add_token(new_token_list, w, WORD);
             
         }
+        //Handle useless white space
+        else if(char_to_sort == ' ' || char_to_sort == '\v' || char_to_sort == '\r' || char_to_sort == '\t'){
+            char_num_counter++;     //increment index
+            input++;                //increment stream pointer
+            char_to_sort = *input;
+        }
+        
         //Check for subshell
         else if( char_to_sort == '('){
             //TODO
@@ -519,7 +454,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 }
                 else if(char_to_sort == '\n'){
                     while(1){                        //Eliminate useless characters
-                        if(input[1] == ' ' || input[1] == '\v' || input[1] == '\r' || input[1] == '\t' || input[1] == '\n')
+                        if(input[1] != ' ' || input[1] != '\v' || input[1] != '\r' || input[1] != '\t' || input[1] != '\n')
                             break;
                         input++;
                         char_to_sort++;
@@ -615,19 +550,22 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     break;
                 case WORD:
                 case SUBSHELL:
-                    new_token_list->next = malloc(sizeof(struct token_node_list));
-                    if(new_token_list->next == NULL){
-                        fprintf(stderr, "\nError allocating memory for new tree in create_token_stream.\n");
-                        return NULL;
-                    }
+                    if(new_token_list->cur_node->token_type != DUMMY_HEAD){
+                        new_token_list->next = malloc(sizeof(struct token_node_list));
+                        if(new_token_list->next == NULL){
+                            fprintf(stderr, "\nError allocating memory for new tree in create_token_stream.\n");
+                            return NULL;
+                        }
                     
-                    new_token_list = new_token_list->next;
+                        new_token_list = new_token_list->next;
+                        new_token_list->head = add_token( new_token_list, NULL,DUMMY_HEAD);
+                    }
                     break;
                 default:
                     if(new_token_list->cur_node->token_type == DUMMY_HEAD)
                         break;
                     else
-                        return NULL;
+                    return NULL;
             }
             char_num_counter++;
             input++;                    //increment pointer
