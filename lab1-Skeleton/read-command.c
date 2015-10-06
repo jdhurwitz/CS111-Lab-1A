@@ -724,10 +724,12 @@ command_t create_tree (struct token_node *token){
         else if(current_node->token_type == AND){
             cmd->type = AND_COMMAND;
             int precedence_check = 0;
+            int empty = 0;
             if(operator_stack->num_contents == 0)
-                break;
+                empty = 1;
+                
             
-            if(view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND)
+            if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
                 if(combine(operator_stack, command_stack) == 0){
@@ -745,10 +747,11 @@ command_t create_tree (struct token_node *token){
         else if(current_node->token_type == OR){
             cmd->type = OR_COMMAND;
             int precedence_check = 0;
+            int empty = 0;
             if(operator_stack->num_contents == 0)
-                break;
+                empty = 1;
             
-            if(view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND)
+            if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
                 if(combine(operator_stack, command_stack) == 0){
