@@ -794,7 +794,7 @@ command_t create_tree (struct token_node *token){
 	}
 	//
 	command_t final_tree = pop(operand_stack);
-	free(command_stack);
+	free(operand_stack);
 	free(operator_stack);
 	return final_tree;
     
