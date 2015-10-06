@@ -388,6 +388,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
     list_iterator->head = new_token_list->head; 
     
     char char_to_sort = *input;
+    int nested_breaker = 0;
     
  //char next_char = *input;
     char* w = malloc(sizeof(char));
@@ -560,6 +561,12 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         
         //Handle newline
         else if(char_to_sort == '\n'){
+            if(*input++ == '\000'){
+                nested_breaker = 1;
+                return;
+                break;
+            }
+                
             switch(new_token_list->cur_node->token_type){
                 case LEFT_REDIRECT:
                 case RIGHT_REDIRECT:
@@ -606,10 +613,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             char_to_sort = *input;
             
         }
-        else if(char_to_sort == '\000'){
-            break;
-        }
-            
         else{
             fprintf(stderr,"\nCharacter is not a word or a special token.\n");
             return NULL;    //no character matches
