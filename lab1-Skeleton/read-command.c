@@ -351,7 +351,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             
         }
         //Handle useless white space
-        else if(char_to_sort == ' ' || char_to_sort == '\v' || char_to_sort == '\r' || char_to_sort == '\t'){
+        else if(char_to_sort == ' ' || char_to_sort == '\t'){
             char_num_counter++;     //increment index
             input++;                //increment stream pointer
             char_to_sort = *input;
@@ -397,9 +397,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     
                 }
                 else if(char_to_sort == '\n'){
-                    while(1){                        //Eliminate useless characters
-                        if(input[1] != ' ' || input[1] != '\v' || input[1] != '\r' || input[1] != '\t' || input[1] != '\n')
-                            break;
+                    while(input[1] != ' ' || input[1] != '\t' || input[1] != '\n'){                        //Eliminate useless characters
                         input++;
                         char_to_sort++;
                     }
@@ -751,6 +749,10 @@ command_t create_tree (struct token_node *token){
     
 
 }
+
+
+
+
 
 command_stream_t make_forest (struct token_node_list *list) {
     struct command_stream* current_tree = NULL;
