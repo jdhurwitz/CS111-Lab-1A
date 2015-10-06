@@ -300,9 +300,9 @@ command_t combine (command_t first, command_t second, char *operator) {
 
 //Function to combine commands and an operator. RETURN 1 if success, 0 if fail
 int combine(struct stack* operator_stack, struct stack* command_stack){
-    if(operator_stack->num_contents  == 0) //No operators
-        return 0;
-    else if(command_stack->num_contents == 0 || command_stack->num_contents == 1) //not enough commands
+    //if(operator_stack->num_contents  == 0) //No operators
+      //  return 0;
+    if(command_stack->num_contents < 2) //not enough commands
         return 0;
     command_t combined = pop(operator_stack);
     combined->input = NULL;
