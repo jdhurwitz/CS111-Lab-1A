@@ -639,7 +639,7 @@ command_t create_tree (struct token_node *token){
     
 
     while(current_node->next_node != NULL || first_run == 1){
-        first_run == 0;
+        first_run = 0;
         ///////////////// Highest priority, so can avoid checking I/O, etc.
         //////PIPE///////
         /////////////////
