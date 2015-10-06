@@ -246,57 +246,7 @@ struct cmd_node * add_cmd_node (struct command_stream * c_list, struct command *
 
 }
 
-/*
 
-command_t combine (command_t first, command_t second, char *operator) {
-  command_t combined = malloc (sizeof (struct command));
-  combined->input=NULL;
-  combined->u.command[1]=second;
-  combined->u.command[0]=first;
-  combined->status=-1;
-  combined->output=NULL;
-  int length;
-  if (operator[0] == '>' || operator[0] == '<'){
-    switch (operator[0]) {
-    case '>':
-      combined->input = first->input;
-      length = strlen(second->u.word[0]);
-      combined->output=malloc(sizeof(char)*(len+1));
-      strcpy(combined->output, second->u.word[0]);
-      break;
-    case '<':
-      combined->output = first->output;
-      length = strlen(second->u.word[0]);
-      combined->input=malloc(sizeof(char) * (len+1));
-      strcpy(combined->input, second->u.word[0]);
-      break;
-    }
-    return combined;
-  }
-    
-  if (operator[0]=='&' && operator[1]=='&'){
-      combined->type = AND_COMMAND;
-  }
-  if (operator[0]=='|' && operator[1]=='|'){
-      combined->type = OR_COMMAND;
-  }
-  switch (operator[0]) {
-  case ';':
-    combined->type = SEQUENCE_COMMAND;
-    break;
-  case '\n':
-    combined->type = SEQUENCE_COMMAND;
-    break;
-  case '|':
-    combined->type = PIPE_COMMAND;
-    break;
-  default:
-    error (1, 0, "Command type not recognized");
-    break;
-  }
-  return combined;
-}
-*/
 
 //Function to combine commands and an operator. RETURN 1 if success, 0 if fail
 int combine(struct stack* operator_stack, struct stack* operand_stack){
@@ -765,6 +715,7 @@ command_t create_tree (struct token_node *token){
                 if(cmd->u.word == NULL)
                     fprintf(stderr, "\n Error allocating memory for word in create_tree.\n");
             }
+            cmd->u.word[0] = current_node->token;
             while(index < words){
                 current_node = next_token(current_node);
                 cmd->u.word[index] = current_node->token;
