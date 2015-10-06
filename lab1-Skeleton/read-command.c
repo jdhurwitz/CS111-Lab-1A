@@ -7,7 +7,7 @@
 #include <error.h>
 #include <stdlib.h>
 #include <string.h>
-#include <alloc.h>
+#include "alloc.h"
 
 /* FIXME: You may need to add #include directives, macro definitions,
    static function definitions, etc.  */
@@ -353,7 +353,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
     int nested_breaker = 0;
     
  //char next_char = *input;
-    char* w = malloc(sizeof(char));
     int char_num_counter = 0;
     while(char_num_counter < num_of_chars){
         if(char_to_sort == '\000'){
@@ -362,8 +361,10 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         //Check to see if word
         if(isWord(char_to_sort)){
             //If so, store the word in its own token
-            int word_index = 0;
             size_t size = 6;
+
+            char* w = checked_malloc(size);
+            int word_index = 0;
             if( w == NULL)
                 fprintf(stderr, "\n Error allocating memory for word.");
             /*
