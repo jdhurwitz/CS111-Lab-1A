@@ -299,21 +299,21 @@ command_t combine (command_t first, command_t second, char *operator) {
 */
 
 //Function to combine commands and an operator. RETURN 1 if success, 0 if fail
-int combine(struct stack* operator_stack, struct stack* command_stack){
+int combine(struct stack* operator_stack, struct stack* operand_stack){
     //if(operator_stack->num_contents  == 0) //No operators
       //  return 0;
-    if(command_stack->num_contents < 2) //not enough commands
+    if(operand_stack->num_contents < 2) //not enough commands
         return 0;
     command_t combined = pop(operator_stack);
     combined->input = NULL;
     combined->output = NULL;
     
-    command_t second = pop(command_stack);
-    command_t first  = pop(command_stack);
+    command_t second = pop(operand_stack);
+    command_t first  = pop(operand_stack);
     
     combined->u.command[1] = second;
     combined->u.command[0] = first;
-    push(operator_stack, combined, 10); //10 for realloc size
+    push(operand_stack, combined, 10); //10 for realloc size
     return 1;
     
 }
@@ -601,7 +601,7 @@ command_t create_tree (struct token_node *token){
     struct token_node * current_node = token;
     
     //Create operator and command stack of size 50
-    struct stack* command_stack = create_stack(50);
+    struct stack* operand_stack = create_stack(50);
     struct stack* operator_stack = create_stack(50);
     
 
@@ -612,7 +612,7 @@ command_t create_tree (struct token_node *token){
         if(current_node->token_type == PIPE){
             cmd->type = PIPE_COMMAND;
             if((operator_stack->num_contents > 0) && (view_top(operator_stack)->type == PIPE_COMMAND)){
-                int combine_result = combine(operator_stack, command_stack);
+                int combine_result = combine(operator_stack, operand_stack);
                 if(combine_result == 0){
                     fprintf(stderr, "\nError combining commands for pipe. Stacks too small.\n");
                     return NULL;
@@ -627,7 +627,7 @@ command_t create_tree (struct token_node *token){
         /////////////////
         else if(current_node->token_type == SEMICOLON){
             cmd->type = SEQUENCE_COMMAND;
-            if(combine(operator_stack, command_stack) == 1)
+            if(combine(operator_stack, operand_stack) == 1)
                 push(operator_stack,cmd ,10);
             else{
                 fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
@@ -699,7 +699,7 @@ command_t create_tree (struct token_node *token){
             if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
-                if(combine(operator_stack, command_stack) == 0){
+                if(combine(operator_stack, operand_stack) == 0){
                     fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
                     return NULL;
                 }
@@ -721,7 +721,7 @@ command_t create_tree (struct token_node *token){
             if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
                 precedence_check = 1;
             if(precedence_check && (operator_stack->num_contents > 0)){
-                if(combine(operator_stack, command_stack) == 0){
+                if(combine(operator_stack, operand_stack) == 0){
                     fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
                     return NULL;
                 }
@@ -737,7 +737,7 @@ command_t create_tree (struct token_node *token){
             int length_of_token = strlen(current_node->token);
             struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
             cmd->u.subshell_command = create_tree(token_stream->head);
-            push(command_stack, cmd,1);
+            push(operand_stack, cmd,1);
         }
         /////////////////
         //////WORD///////
@@ -775,26 +775,26 @@ command_t create_tree (struct token_node *token){
             //Check to see if all were set successfully
             if(set_word_success)
                 cmd->u.word[words] = NULL;
-            push(command_stack, cmd, 1);
+            push(operand_stack, cmd, 1);
         }
       cmd_prev = cmd;
     } while(current_node != NULL && (current_node = current_node->next_node) != NULL);
     
     int combine_check = 0;
     while(operator_stack->num_contents >0){
-	combine_check = combine(operator_stack, command_stack);
+	combine_check = combine(operator_stack, operand_stack);
         if(combine_check == 0){
             fprintf(stderr, "\nEither not enough operands or operators in stack at end of create_tree\n");
             return NULL;
         }
     }
-	if(command_stack->num_contents != 1){
+	if(operand_stack->num_contents != 1){
           fprintf(stderr, "\n Command stack != 1 items in create_tree.\n");
 	  return NULL;
 	}
 	//
-	command_t final_tree = pop(command_stack);
-	free(command_stack);
+	command_t final_tree = pop(operand_stack);
+	free(operand_stack);
 	free(operator_stack);
 	return final_tree;
     
