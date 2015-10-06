@@ -960,7 +960,7 @@ make_command_stream (int (*get_next_byte) (void *),
 
 
 command_t
-read_command_stream (struct command_stream* s)
+read_command_stream (command_stream_t s)
 {
     if(s == NULL || s->cur_node == NULL){
         fprintf(stderr, "\nCommand stream in read command is NULL.\n");
