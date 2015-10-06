@@ -866,8 +866,8 @@ command_stream_t make_forest (struct token_node_list *list) {
 
 command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
     //operator stack and command stack as parameters
-              char *op = pop(operator_stack);
-              void *cmd1, *cmd2;
+              command_t op = pop(operator_stack);
+              command_t cmd1, cmd2;
               command_t combined_cmd = NULL;
               //Look for two commands and consolidate for precedence issues later.
               //Second command will be on the top of the stack
