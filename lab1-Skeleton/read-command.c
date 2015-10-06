@@ -178,7 +178,18 @@ struct token_node *next_token(struct token_node *token){
     return token->next_node;
   else
     return NULL;
-} 
+}
+
+struct command_stream *next_command_stream(struct command_stream *cmd_stream){
+    //Make sure it isn't the tail or head node in single node case
+    if(cmd_stream == NULL)
+        error(1,0, "Error in next_token, token ptr NULL.");
+    
+    if(cmd_stream->next != NULL)
+        return cmd_stream->next;
+    else
+        return NULL;
+}
 
 struct token_node *add_token(struct token_node_list *tokens, char *token_to_add, enum token_name type){
   int token_node_size = sizeof(struct token_node);
@@ -490,6 +501,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 //Add a token node for OR
                 new_token_list->cur_node = add_token(new_token_list, w, OR);
                 
+                char_num_counter++;
+                input++;                    //increment pointer
+                char_to_sort = *input;         //peek at the next character
                 //list_iterator->next = add_token(new_token_list, char_to_sort, OR);
                 //list_iterator = list_iterator->next;
             }else if(char_to_sort != '|'){ //PIPE
@@ -509,6 +523,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             if(char_to_sort == '&'){       //This is an and
                 new_token_list->cur_node = add_token(new_token_list, w, AND);
                 
+                char_num_counter++;
+                input++;                    //increment pointer
+                char_to_sort = *input;         //peek at the next character
                 //list_iterator->next = add_token(new_token_list, char_to_sort, AND);
                 //list_iterator = list_iterator->next;
             }else if(char_to_sort != '&'){
@@ -923,14 +940,21 @@ make_command_stream (int (*get_next_byte) (void *),
 
 
 command_t
-read_command_stream (command_stream_t s)
+read_command_stream (struct command_stream* s)
 {
     if(s == NULL || s->cur_node == NULL){
         fprintf(stderr, "\nCommand stream in read command is NULL.\n");
         return NULL;
     }
-    struct cmd_node *cmd_node_print = s->cur_node;
-    s->cur_node = s->cur_node->next_node;
+    command_t cmd_return= s->command;
     
-    return cmd_node_print->cmd;
+    if(s->next == NULL)
+        s->command = NULL;
+    else{
+        struct command_Stream *cmd_node_print = next_command_stream(s);
+        s->command = s->next->command;
+        s->next = next_command_stream(next_command_stream(s));
+        free(next);
+    }
+    return cmd_return;
 }
