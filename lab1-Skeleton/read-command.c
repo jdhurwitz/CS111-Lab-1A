@@ -143,7 +143,7 @@ command_t view_top (struct stack *stack) {
 }
 
 command_t pop(struct stack *user_stack){
-    if(user_stack->max_contents <=0 || user_stack->num_contents <= 0){
+    if(user_stack->num_contents <= 0){
         return NULL;
     }
     else{
