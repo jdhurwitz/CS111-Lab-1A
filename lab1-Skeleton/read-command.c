@@ -784,7 +784,7 @@ command_stream_t make_forest (struct token_node_list *list) {
              head_tree = current_tree;
              previous_tree = head_tree;
              //head_tree = current_tree;
-]             //A later iteration, so increment the previous_tree while keeping head_tree constant.
+             //A later iteration, so increment the previous_tree while keeping head_tree constant.
         } else {
             /*
              tail_tree = head_tree;
