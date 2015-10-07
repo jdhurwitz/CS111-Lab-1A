@@ -104,7 +104,6 @@ int is_operator(char test){
 ///////////////////////////////////////////////////////////////////
 //Create the appearance of a stack in order to hold the commands.//
 ///////////////////////////////////////////////////////////////////
-
 struct stack{
     int num_contents;
     int max_contents;
@@ -551,10 +550,8 @@ command_t create_tree (struct token_node *token){
     struct token_node * current_node = token;
     
     //Create operator and command stack of size 50
-    struct stack* operand_stack;
-    operand_stack = malloc(sizeof(stack));//create_stack();
-    struct stack* operator_stack;
-    operator_stack = malloc(sizeof(stack));//create_stack();
+    struct stack* operand_stack = malloc(sizeof(struct stack));//create_stack();
+    struct stack* operator_stack = malloc(sizeof(struct stack));//create_stack();
     operand_stack->num_contents = 0;
     operator_stack->num_contents = 0;
 
