@@ -548,6 +548,7 @@ command_t create_tree (struct token_node *token){
     }
     command_t cmd = malloc(sizeof(struct command));
     command_t cmd_prev = NULL;
+    command_t p = NULL;
     struct token_node * current_node = token;
     
     //Create operator and command stack of size 50
@@ -667,7 +668,7 @@ command_t create_tree (struct token_node *token){
         //////PIPE///////
         /////////////////
         else if(current_node->token_type == PIPE){
-            cmd->type = PIPE_COMMAND;
+            p->type = PIPE_COMMAND;
             if((operator_stack->num_contents > 0) && (view_top(operator_stack)->type == PIPE_COMMAND)){
                 int combine_result = combine(operator_stack, operand_stack);
                 if(combine_result == 0){
@@ -675,7 +676,7 @@ command_t create_tree (struct token_node *token){
                     return NULL;
                 }
             }
-            push(operator_stack, cmd, 1);
+            push(operator_stack, p, 1);
             
         }
         
