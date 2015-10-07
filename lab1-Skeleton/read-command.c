@@ -921,7 +921,7 @@ command_t
 read_command_stream (command_stream_t s)
 {
     if(s == NULL || s->command == NULL){
-        fprintf(stderr, "\nCommand stream in read command is NULL.\n");
+        //fprintf(stderr, "\nCommand stream in read command is NULL.\n");
         return NULL;
     }
     command_t cmd_return= s->command;
