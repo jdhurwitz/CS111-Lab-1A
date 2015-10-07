@@ -297,8 +297,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
     struct token_node* dummy_head = add_token(new_token_list, NULL,DUMMY_HEAD);
     new_token_list->head = dummy_head;
 
-    struct token_node_list* list_iterator = new_token_list;
-    list_iterator->head = new_token_list->head; 
+
     
     char char_to_sort = *input;
     int nested_breaker = 0;
@@ -590,7 +589,6 @@ command_t create_tree (struct token_node *token){
                     current_node = next_token(current_node);
                     if(current_node->token_type == WORD){
                         cmd_prev->input = current_node->token;  //The input for left redir is the word of current node
-                        break;
                     }
                     else{
                         fprintf(stderr, "\nThere is no word after the left redirect.\n");
@@ -618,10 +616,10 @@ command_t create_tree (struct token_node *token){
                 current_node = next_token(current_node);
                 if(current_node->token_type == WORD){      //Check for SIMPLE_COMMAND
                     cmd_prev->output = current_node->token;
-                    break;
-                }
+                }else{
                 //At this point we've reached a formatting error
                 fprintf(stderr, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
+                }
             }
             
             ///////////////// Same precedence as OR
