@@ -609,7 +609,7 @@ command_t create_tree (struct token_node *token){
                     fprintf(stderr, "\nRight redirect has output field already filled.\n");
                     return NULL;
                 }
-                if(cmd_prev->type != SIMPLE_COMMAND || cmd_prev->type != SUBSHELL_COMMAND){ //simple command = word
+                if(!(cmd_prev->type == SIMPLE_COMMAND && cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
                     fprintf(stderr, "\nFormatting issue with right redirect.\n");
                     return NULL;
                 }
