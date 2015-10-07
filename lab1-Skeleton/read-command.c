@@ -504,7 +504,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                         if(new_token_list == NULL)
                             fprintf(stderr, "\n new_token_list is NULL in handling newline\n");
                         
-                        new_token_list->head = add_token( new_token_list, NULL,DUMMY_HEAD);
+                        new_token_list->head = add_token(new_token_list, NULL, DUMMY_HEAD );
                         new_token_list->cur_node = new_token_list->head;
 
                     }
