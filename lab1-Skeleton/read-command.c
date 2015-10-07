@@ -120,7 +120,7 @@ void remove_stack (struct stack *stack) {
     return;
 }
 
-void push (struct stack *stack, command_t val, int increase_size) {
+void push (struct stack *stack, command_t val) {
     /*
     if (stack->num_contents == stack->max_contents) {
         stack->max_contents = stack->max_contents + increase_size;
@@ -264,7 +264,7 @@ int combine(struct stack* operator_stack, struct stack* operand_stack){
     
     combined->u.command[1] = second;
     combined->u.command[0] = first;
-    push(operand_stack, combined, 10); //10 for realloc size
+    push(operand_stack, combined); //10 for realloc size
     return 1;
     
 }
@@ -316,26 +316,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
 
             char* w = checked_malloc(size);
             size_t word_index = 0;
-
-            /*
-            while(isWord(char_to_sort)){
-                w[word_index] = char_to_sort;
-                word_index++;
-                
-                w = realloc(w, (word_index+1)*sizeof(char));
-                if(w == NULL)
-                    fprintf(stderr, "\n Error allocating memory for word.");
-                
-                char_num_counter++;     //increment index
-                input++;                //increment stream pointer
-                char_to_sort = *input;
-                
-                if(char_num_counter ==  num_of_chars)
-                    break;
-            }        
-             */
-            
-            
+    
             do{
                 w[word_index] = char_to_sort;
                 word_index++;
@@ -564,18 +545,81 @@ command_t create_tree (struct token_node *token){
             if( !(current_node->token_type == LEFT_REDIRECT || current_node->token_type == RIGHT_REDIRECT) )
             {
                 // make new command
+                // prev might be null and this will not work -> reset
                 cmd = checked_malloc(sizeof( struct command ));
             }
+            
+            ///////////////// Highest priority, so can avoid checking I/O, etc.
+            //////PIPE///////
+            /////////////////
+             if(current_node->token_type == PIPE){
+                cmd->type = PIPE_COMMAND;
+                if((operator_stack->num_contents > 0) && (view_top(operator_stack)->type == PIPE_COMMAND)){
+                    int combine_result = combine(operator_stack, operand_stack);
+                    if(combine_result == 0){
+                        fprintf(stderr, "\nError combining commands for pipe. Stacks too small.\n");
+                        return NULL;
+                    }
+                }
+                push(operator_stack, cmd);
+                
+            }
+            
             /////////////////
             /////SUBSHELL////
             /////////////////
-            if(current_node->token_type == SUBSHELL){
+            else if(current_node->token_type == SUBSHELL){
                 cmd->type = SUBSHELL_COMMAND;
                 int length_of_token = strlen(current_node->token);
                 struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
                 cmd->u.subshell_command = create_tree(token_stream->head);
-                push(operand_stack, cmd,1);
+                push(operand_stack, cmd);
             }
+            
+            ///////////////// Same precedence as OR
+            ///////AND///////
+            /////////////////
+            else if(current_node->token_type == AND){
+                cmd->type = AND_COMMAND;
+                int precedence_check = 0;
+                int empty = 0;
+                if(operator_stack->num_contents == 0)
+                    empty = 1;
+                
+                
+                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
+                    precedence_check = 1;
+                if(precedence_check && (operator_stack->num_contents > 0)){
+                    if(combine(operator_stack, operand_stack) == 0){
+                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
+                        return NULL;
+                    }
+                }
+                push(operator_stack, cmd);
+                
+            }
+            ////////////////// Same precedence as AND
+            ////////OR///////
+            /////////////////
+            else if(current_node->token_type == OR){
+                cmd->type = OR_COMMAND;
+                int precedence_check = 0;
+                int empty = 0;
+                if(operator_stack->num_contents == 0)
+                    empty = 1;
+                
+                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
+                    precedence_check = 1;
+                if(precedence_check && (operator_stack->num_contents > 0)){
+                    if(combine(operator_stack, operand_stack) == 0){
+                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
+                        return NULL;
+                    }
+                }
+                push(operator_stack, cmd);
+            }
+            
+
             
             /////////////////
             //LEFT REDIRECT//
@@ -627,65 +671,8 @@ command_t create_tree (struct token_node *token){
                 }
             }
             
-            ///////////////// Same precedence as OR
-            ///////AND///////
-            /////////////////
-            else if(current_node->token_type == AND){
-                cmd->type = AND_COMMAND;
-                int precedence_check = 0;
-                int empty = 0;
-                if(operator_stack->num_contents == 0)
-                    empty = 1;
-                
-                
-                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
-                    precedence_check = 1;
-                if(precedence_check && (operator_stack->num_contents > 0)){
-                    if(combine(operator_stack, operand_stack) == 0){
-                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (AND)\n");
-                        return NULL;
-                    }
-                }
-                push(operator_stack, cmd, 1);
-                
-            }
-            ////////////////// Same precedence as AND
-            ////////OR///////
-            /////////////////
-            else if(current_node->token_type == OR){
-                cmd->type = OR_COMMAND;
-                int precedence_check = 0;
-                int empty = 0;
-                if(operator_stack->num_contents == 0)
-                    empty = 1;
-                
-                if(!empty && (view_top(operator_stack)->type == AND_COMMAND || view_top(operator_stack)->type == OR_COMMAND || view_top(operator_stack)->type == PIPE_COMMAND))
-                    precedence_check = 1;
-                if(precedence_check && (operator_stack->num_contents > 0)){
-                    if(combine(operator_stack, operand_stack) == 0){
-                        fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (OR)\n");
-                        return NULL;
-                    }
-                }
-                push(operator_stack, cmd, 1);
-            }
-
             
-        ///////////////// Highest priority, so can avoid checking I/O, etc.
-        //////PIPE///////
-        /////////////////
-        else if(current_node->token_type == PIPE){
-            cmd->type = PIPE_COMMAND;
-            if((operator_stack->num_contents > 0) && (view_top(operator_stack)->type == PIPE_COMMAND)){
-                int combine_result = combine(operator_stack, operand_stack);
-                if(combine_result == 0){
-                    fprintf(stderr, "\nError combining commands for pipe. Stacks too small.\n");
-                    return NULL;
-                }
-            }
-            push(operator_stack, cmd, 1);
-            
-        }
+        
         
         ///////////////// Lowest precedence, along with newline
         ////SEMICOLON////
@@ -693,7 +680,7 @@ command_t create_tree (struct token_node *token){
         else if(current_node->token_type == SEMICOLON){
             cmd->type = SEQUENCE_COMMAND;
             if(combine(operator_stack, operand_stack) == 1)
-                push(operator_stack,cmd ,10);
+                push(operator_stack,cmd);
             else{
                 fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
                 return NULL;
@@ -737,7 +724,7 @@ command_t create_tree (struct token_node *token){
             }
             //Check to see if all were set successfully
             cmd->u.word[words] = NULL;
-            push(operand_stack, cmd, 1);
+            push(operand_stack, cmd);
         }
       cmd_prev = cmd;
     } while(current_node != NULL && (current_node = current_node->next_node) != NULL);
