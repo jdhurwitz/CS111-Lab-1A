@@ -877,7 +877,7 @@ make_command_stream (int (*get_next_byte) (void *),
         {
             do
             {
-                next_input_char = getbyte(arg);
+                next_input_char = get_next_byte(get_next_byte_argument);
             } while (next_input_char != -1 && next_input_char != EOF && next_input_char != '\n');
         }
 
