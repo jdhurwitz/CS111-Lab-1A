@@ -503,7 +503,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                         new_token_list = new_token_list->next;
                         if(new_token_list == NULL)
                             fprintf(stderr, "\n new_token_list is NULL in handling newline\n");
+                        
                         new_token_list->head = add_token( new_token_list, NULL,DUMMY_HEAD);
+                        new_token_list->cur_node = new_token_list->head;
 
                     }
                     break;
@@ -866,20 +868,12 @@ make_command_stream (int (*get_next_byte) (void *),
         if(next_input_char == -1 || next_input_char == EOF)
             break;
         
-        /*
         if(next_input_char == '#'){ // this is a comment, skip until EOF or newline
             while((next_input_char != EOF) && (next_input_char != '\n') && (next_input_char != -1)){
                 next_input_char = get_next_byte(get_next_byte_argument);
             }
         }
-         */
-        if (next_input_char == '#') // for comments: ignore everything until '\n' or EOF
-        {
-            do
-            {
-                next_input_char = get_next_byte(get_next_byte_argument);
-            } while (next_input_char != -1 && next_input_char != EOF && next_input_char != '\n');
-        }
+
 
         
         //Start loading stuff into input_stream buffer
