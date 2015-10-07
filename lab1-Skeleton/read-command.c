@@ -680,7 +680,7 @@ command_t create_tree (struct token_node *token){
                     return NULL;
                 }
             }
-            push(operator_stack, p, 1);
+            push(operator_stack, cmd, 1);
             
         }
         
