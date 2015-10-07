@@ -771,26 +771,30 @@ command_stream_t make_forest (struct token_node_list *list) {
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
+        if (current_tree == NULL){
+            fprintf(stderr, "Was not able to allocate memory to standard error");
+        }
         
         //Test
         current_tree->command = command_node;
         
-        if (current_tree == NULL){
-            fprintf(stderr, "Was not able to allocate memory to standard error");
-        }
-                    
+        
         //The first iteration, so set both head and previous tree to current_tree (the first one)
         if (!head_tree) {
-             previous_tree = head_tree;
              head_tree = current_tree;
              previous_tree = head_tree;
-             //A later iteration, so increment the previous_tree while keeping head_tree constant.
+             //head_tree = current_tree;
+]             //A later iteration, so increment the previous_tree while keeping head_tree constant.
         } else {
+            /*
              tail_tree = head_tree;
              previous_tree->next = current_tree;
              tail_tree = NULL;
              previous_tree = current_tree;
              tail_tree = previous_tree->next;
+             */
+            previous_tree->next = current_tree;
+            previous_tree = current_tree;
         }
             list = list->next;
             tail_tree = NULL;
