@@ -300,6 +300,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
 
     
     char char_to_sort = *input;
+
     int nested_breaker = 0;
     
  //char next_char = *input;
@@ -482,7 +483,8 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             if(*input++ == '\000'){
                 return head_of_list;
                 break;
-            }
+            }else
+                *input--;
                 
             switch(new_token_list->cur_node->token_type){
                 case LEFT_REDIRECT:
@@ -494,6 +496,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 case SUBSHELL:
                     if(new_token_list->cur_node->token_type != DUMMY_HEAD){
                         new_token_list->next = malloc(sizeof(struct token_node_list));
+                        
                         if(new_token_list->next == NULL){
                             fprintf(stderr, "\nError allocating memory for new tree in create_token_stream.\n");
                             return NULL;
