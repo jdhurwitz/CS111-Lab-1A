@@ -255,9 +255,10 @@ int combine(struct stack* operator_stack, struct stack* operand_stack){
     if(operand_stack->num_contents < 2) //not enough commands
         return 0;
     command_t combined = pop(operator_stack);
+    /*
     combined->input = NULL;
     combined->output = NULL;
-    
+    */
     command_t second = pop(operand_stack);
     command_t first  = pop(operand_stack);
     
