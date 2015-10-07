@@ -729,8 +729,7 @@ command_t create_tree (struct token_node *token){
                     set_word_success = 1;
             }
             //Check to see if all were set successfully
-            if(set_word_success)
-                cmd->u.word[words] = NULL;
+            cmd->u.word[words] = NULL;
             push(operand_stack, cmd, 1);
         }
       cmd_prev = cmd;
