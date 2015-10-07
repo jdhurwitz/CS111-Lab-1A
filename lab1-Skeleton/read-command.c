@@ -866,11 +866,21 @@ make_command_stream (int (*get_next_byte) (void *),
         if(next_input_char == -1 || next_input_char == EOF)
             break;
         
+        /*
         if(next_input_char == '#'){ // this is a comment, skip until EOF or newline
             while((next_input_char != EOF) && (next_input_char != '\n') && (next_input_char != -1)){
                 next_input_char = get_next_byte(get_next_byte_argument);
             }
         }
+         */
+        if (next_input_char == '#') // for comments: ignore everything until '\n' or EOF
+        {
+            do
+            {
+                next_input_char = getbyte(arg);
+            } while (next_input_char != -1 && next_input_char != EOF && next_input_char != '\n');
+        }
+
         
         //Start loading stuff into input_stream buffer
         input_stream[char_num] = next_input_char;
