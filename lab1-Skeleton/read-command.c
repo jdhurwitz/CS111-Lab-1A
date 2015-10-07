@@ -122,10 +122,12 @@ void remove_stack (struct stack *stack) {
 }
 
 void push (struct stack *stack, command_t val, int increase_size) {
+    /*
     if (stack->num_contents == stack->max_contents) {
         stack->max_contents = stack->max_contents + increase_size;
         stack->contents = realloc (stack->contents, stack->max_contents * sizeof(void));
     }
+     */
     stack->contents[stack->num_contents] = val;
     stack->num_contents = stack->num_contents + 1;
     return;
@@ -154,12 +156,11 @@ command_t pop(struct stack *user_stack){
     return NULL;
     
 }
+/*
 
-
-struct stack* create_stack(int specified_max){
+struct stack* create_stack(){
     int stack_size = sizeof(struct stack);
     struct stack* new_stack = malloc(stack_size);
-    new_stack->max_contents = specified_max; //Set max amt in stack
     new_stack->num_contents = 0; //Nothing in the stack atm
     
     int contents_alloc_size = new_stack->max_contents * sizeof(void*);
@@ -167,7 +168,7 @@ struct stack* create_stack(int specified_max){
     return new_stack;
 }
 
-
+*/
 
 
 struct token_node *next_token(struct token_node *token){
@@ -550,9 +551,10 @@ command_t create_tree (struct token_node *token){
     struct token_node * current_node = token;
     
     //Create operator and command stack of size 50
-    struct stack* operand_stack = create_stack(50);
-    struct stack* operator_stack = create_stack(50);
-    
+    struct stack* operand_stack = malloc(sizeof(stack));//create_stack();
+    struct stack* operator_stack = malloc(sizeof(stack));//create_stack();
+    operand_stack->num_contents = 0;
+    operator_stack->num_contents = 0;
 
         do{
             /////////////////

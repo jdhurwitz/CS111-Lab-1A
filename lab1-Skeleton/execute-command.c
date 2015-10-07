@@ -28,6 +28,7 @@ execute_command (command_t c, int time_travel)
 
 }
 
+/*
 
 void 
 execute_AND_command(command_t c)
@@ -93,19 +94,17 @@ void
 execute_simple_command(command_t c)
 {
   IO_redirect(c);
-  /*
-    execvp() sys call:
-    1) first arg is char string contains nam eof file to be exec
-    2) second arg is pointer to an array of char strings (word)
-   */
+ 
+   // execvp() sys call:
+   // 1) first arg is char string contains nam eof file to be exec
+   // 2) second arg is pointer to an array of char strings (word)
+ 
   execvp(c->u.word[0], c->u.word);
   //Will break, throw error if not..
   error(1,0, "Simple command failure in execute_simple_command");
 }
 
-/*
-Combine calls for simple commands, subshells, and commands into one function.
- */
+
 void
 execute_combined_IO(command_t c){
   if(c->type == SUBSHELL_COMMAND){
@@ -137,19 +136,12 @@ IO_error_check(int opened, command_t c, int isOutput){
 void
 IO_redirect(command_t c)
 {
-  /*
-  Check to see if input pointer is null, if not can do file operations.
-  Pull from the file.
-   */
+
   if(c->input != NULL){
     int read_input = open(c->input, O_RDWR); //Read and write permission
     IO_error_check(read_input, c, 0);
   }
 
-  /*
-  Check to see if the output pointer is null, if not, can copy all the 
-  stuff from the input into the output after redirect.
-   */
   if(c->output != NULL){
     int output = open(c->output, O_TRUNC | O_CREAT | S_IWUSR | S_IWGRP | O_WRONLY | S_IRUSR | S_IRGRP);
     IO_error_check(output, c, 1);
@@ -157,35 +149,4 @@ IO_redirect(command_t c)
 }
 
 
-/*
-Switch on the command that was entered. Call the respective helper
-function to do actual execution.
- */
-void 
-switch_on_command(command_t c)
-{
-  switch(c->type){
-    case AND_COMMAND:
-      execute_AND_command(c);  
-      break;
-    case SEQUENCE_COMMAND:
-      execute_SEQUENCE_command(c);
-      break;
-    case OR_COMMAND:
-      execute_OR_command(c);
-      break;
-    case PIPE_COMMAND:
-      execute_PIPE_command(c);
-      break;
-    case SIMPLE_COMMAND:
-      execute_combined_io(c); //execute_combined calls execute_simple
-      break;
-    case SUBSHELL_COMMAND:
-      execute_combined_io(c);
-      break;
-   default:
-   //Output to stderr with a syntax error message that has line number and colon, then exit
-      fprintf(stderr, "%s\n", "Error in switch_on_command; no enumerated type selected.");
-      break;
-  }
-}
+*/
