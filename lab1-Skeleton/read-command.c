@@ -551,8 +551,10 @@ command_t create_tree (struct token_node *token){
     struct token_node * current_node = token;
     
     //Create operator and command stack of size 50
-    struct stack* operand_stack = malloc(sizeof(stack));//create_stack();
-    struct stack* operator_stack = malloc(sizeof(stack));//create_stack();
+    struct stack* operand_stack;
+    operand_stack = malloc(sizeof(stack));//create_stack();
+    struct stack* operator_stack;
+    operator_stack = malloc(sizeof(stack));//create_stack();
     operand_stack->num_contents = 0;
     operator_stack->num_contents = 0;
 
