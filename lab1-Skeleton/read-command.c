@@ -377,12 +377,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     close_pars++;
                     num_pairs--;
                     parens_valid = open_pars-close_pars;
-                    if( num_pairs == 0 && parens_valid == 0)
-                        break;
-                    else if(num_pairs == 0 && parens_valid != 0){
-                        error(2, 0, "\n Mismatched parentheses.\n");
-                        return NULL;
-                    }
                     
                 }
                 else if(char_to_sort == '\n'){
@@ -404,6 +398,13 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                         return NULL;
                     }
                 }
+                if( num_pairs == 0 && parens_valid == 0)
+                    break;
+                else if(num_pairs == 0 && parens_valid != 0){
+                    error(2, 0, "\n Mismatched parentheses.\n");
+                    return NULL;
+                }
+                
                 new_token_list->cur_node = add_token(new_token_list, ss_buf, SUBSHELL);
                 
             }
@@ -631,7 +632,7 @@ command_t create_tree (struct token_node *token){
             /////////////////
             else if(current_node->token_type == LEFT_REDIRECT){
                 if(cmd_prev == NULL){
-                    fprintf(stderr, "\n cmd_prev NULL .\n");
+                    error(3, 0, "\n cmd_prev NULL .\n");
                     return NULL;
                 }
                 if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
@@ -656,7 +657,7 @@ command_t create_tree (struct token_node *token){
             //////////////////
             else if(current_node->token_type == RIGHT_REDIRECT){
                 if(cmd_prev == NULL){
-                    fprintf(stderr, "\n cmd_prev NULL in left redirect.\n");
+                    error(3, 0, "\n cmd_prev NULL in right redirect.\n");
                     return NULL;
                 }
                 if(cmd_prev->output != NULL){
