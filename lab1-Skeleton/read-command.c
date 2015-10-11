@@ -9,8 +9,14 @@
 #include <string.h>
 #include "alloc.h"
 
-/* FIXME: You may need to add #include directives, macro definitions,
-   static function definitions, etc.  */
+/*
+ Error codes
+ 1: generic error
+ 2: syntax error
+ 3: formatting error
+ 4: unknown character
+ 5: stack error
+ */
 
 //Structs (nodes) for tokens and commands
 struct cmd_node{
@@ -303,7 +309,6 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
 
     int nested_breaker = 0;
     
- //char next_char = *input;
     int char_num_counter = 0;
     while(char_num_counter < num_of_chars){
         if(char_to_sort == '\000'){
@@ -375,7 +380,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     if( num_pairs == 0 && parens_valid == 0)
                         break;
                     else if(num_pairs == 0 && parens_valid != 0){
-                        fprintf(stderr, "\n Mismatched parentheses.\n");
+                        error(2, 0, "\n Mismatched parentheses.\n");
                         return NULL;
                     }
                     
@@ -436,7 +441,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 input++;                    //increment pointer
                 char_to_sort = *input;         //peek at the next character
             }else if(char_to_sort != '&'){
-                fprintf(stderr, "\n Single and...error.\n");
+                error(2,0, "\n Single and...error.\n");
                 return NULL;
             }
         }
@@ -470,7 +475,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             switch(new_token_list->cur_node->token_type){
                 case LEFT_REDIRECT:
                 case RIGHT_REDIRECT:
-                    fprintf(stderr, "\n Error in syntax. Redirect before newline.\n");
+                    error(2, 0, "\n Error in syntax. Redirect before newline.\n");
                     return NULL;
                     break;
                 case WORD:
@@ -514,7 +519,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             
         }
         else{
-            fprintf(stderr,"\nCharacter is not a word or a special token.\n");
+            error(4, 0,"\nCharacter is not a word or a special token.\n");
             return NULL;    //no character matches
         }
     }
@@ -630,7 +635,7 @@ command_t create_tree (struct token_node *token){
                     return NULL;
                 }
                 if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
-                    fprintf(stderr, "\nFormatting issue with left redirect.\n");
+                    error(3 ,0, "\nFormatting issue with left redirect.\n");
                     return NULL;
                 }else if(cmd_prev->input != NULL || cmd_prev->output != NULL)
                     return NULL;
@@ -655,11 +660,11 @@ command_t create_tree (struct token_node *token){
                     return NULL;
                 }
                 if(cmd_prev->output != NULL){
-                    fprintf(stderr, "\nRight redirect has output field already filled.\n");
+                    error(3, 0, "\nRight redirect has output field already filled.\n");
                     return NULL;
                 }
                 if(!(cmd_prev->type == SIMPLE_COMMAND || cmd_prev->type == SUBSHELL_COMMAND)){ //simple command = word
-                    fprintf(stderr, "\nFormatting issue with right redirect.\n");
+                    error(3, 0, "\nFormatting issue with right redirect.\n");
                     return NULL;
                 }
                 current_node = next_token(current_node);
@@ -667,7 +672,7 @@ command_t create_tree (struct token_node *token){
                     cmd_prev->output = current_node->token;
                 }else{
                 //At this point we've reached a formatting error
-                fprintf(stderr, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
+                error(3, 0, "\nFormatting issue with right redirect. No SIMPLE_COMMAND after?\n");
                 }
             }
             
@@ -733,12 +738,12 @@ command_t create_tree (struct token_node *token){
     while(operator_stack->num_contents >0){
 	combine_check = combine(operator_stack, operand_stack);
         if(combine_check == 0){
-            fprintf(stderr, "\nEither not enough operands or operators in stack at end of create_tree\n");
+            error(5, 0, "\nEither not enough operands or operators in stack at end of create_tree\n");
             return NULL;
         }
     }
 	if(operand_stack->num_contents != 1){
-          fprintf(stderr, "\n Command stack != 1 items in create_tree.\n");
+          error(5 ,0, "\n Command stack != 1 items in create_tree.\n");
           return NULL;
 	}
 	//
