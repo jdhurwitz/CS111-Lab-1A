@@ -380,7 +380,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     
                 }
                 else if(char_to_sort == '\n'){
-                    if(input[1] == NULL){
+                    if(input[1] == '\000'){
                         error(6, 0, "input[1] is null, so nothing after the newline.");
                     }
                     while(input[1] != ' ' || input[1] != '\t' || input[1] != '\n'){                        //Eliminate useless characters
