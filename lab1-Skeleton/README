@@ -61,20 +61,33 @@ create_tree
 -Makes a command tree and takes in a pointer to a token as the argument.
 -Creates an operand stack and an operator stack
 
+///////////
+make_forest
+///////////
+-This function makes a command forest from the command trees
 
 We make the command tree then traverse the token_node_lists in order to make the command forest that will serve as the final functional model for printing out.
 ----
 
-It's 11:41 and I'm running out of time.
 
-What we need to fix:
+Checking for Errors
+-------------------
+We created error codes and specific messages to help us determine when and why something fails. The codes are as follows:
+1: generic error
+2: syntax error
+3: formatting error
+4: unknown character
+5: stack size or stack formatting error
+6: pointer out of bounds error
 
-line number error stuff. We didn't pass all the bad test cases.
+We called the function error in order to handle these messages. Parameter 0 of this function will also exit the program and if its value is non-zero.
 
-We need to work to free memory from all of the memory locations that we allocated. We ran out of time and did not get a chance to do this. This will be implemented in the next part of the lab, but for now we are turning in what we have.
 
-We focused on passing the most important test cases and passing them 100% correctly. We will go back and fix the previous disfunctionality for lab 1b.
 
-Thanks!
+
+Known Limitations
+-----------------
+Our program passed all of the test cases for test-p-ok.sh and test-p-bad.sh. We were not aware of any limitations.
+
 
 
