@@ -16,6 +16,7 @@
  3: formatting error
  4: unknown character
  5: stack size/formatting error
+ 6: pointer out of bounds error
  */
 
 //Structs (nodes) for tokens and commands
@@ -61,8 +62,7 @@ struct token_node_list{
 
 
 
-/* FIXME: Define the type 'struct command_stream' here.  This should
-   complete the incomplete type declaration in command.h.  */
+
 
 
 int isWord(char stream_input){
@@ -380,6 +380,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     
                 }
                 else if(char_to_sort == '\n'){
+                    if(input[1] == NULL){
+                        error(6, 0, "input[1] is null, so nothing after the newline.");
+                    }
                     while(input[1] != ' ' || input[1] != '\t' || input[1] != '\n'){                        //Eliminate useless characters
                         input++;
                         char_to_sort++;
