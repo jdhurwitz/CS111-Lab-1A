@@ -1,5 +1,4 @@
 // UCLA CS 111 Lab 1 command reading
-
 #include "command.h"
 #include "command-internals.h"
 #include <stdio.h>
@@ -9,6 +8,7 @@
 #include <string.h>
 #include "alloc.h"
 
+int grass = 0;
 /*
  Error codes
  1: generic error
@@ -46,8 +46,8 @@ enum token_name{
     WORD
     
 };
-//Tokens
 
+//Tokens
 struct token_node{
   enum token_name token_type;
   char *token;
@@ -61,23 +61,23 @@ struct token_node_list{
 };
 
 
-
-
-
-
 int isWord(char stream_input){
   if(isalnum(stream_input))
     return 1;
   switch(stream_input){
     case '!':
     case '%':
+      return 1;
     case '+':
     case ',':
     case '-':
+      return 1;
     case '.':
+      return 1;
     case '/':
     case ':':
     case '@':
+      return 1;
     case '^':
     case '_':
       return 1;
@@ -90,9 +90,10 @@ int is_operator(char test){
   //-1 = unknown, 0 = not word, 1 = word
   if(test == ' '){ //White space
     return 0;
-  }else if( test == '\n')
+  }else if( test == '\n') //New line
     return 1;
 
+ //Cases for all the other operators.
  switch(test){
   case '(':
   case ')':
@@ -114,11 +115,14 @@ struct stack{
     int num_contents;
     int max_contents;
     command_t contents[10];
+    //Pointer to top of the stack.
+    command_t* top;
 };
 
 void remove_stack (struct stack *stack) {
     int i;
     for (i = 0; i < stack->num_contents; i++) {
+        //fage
         free (stack->contents[i]);
     }
     free (stack->contents);
@@ -231,15 +235,16 @@ struct token_node *add_token(struct token_node_list *tokens, char *token_to_add,
 struct cmd_node * add_cmd_node (struct command_stream * c_list, struct command * n_command) {
   int node_size = sizeof(struct cmd_node);
 
+  //Just like how you would add a node to a linked list.
   if (c_list->head == NULL){
     struct cmd_node * n_node = malloc (node_size);
     c_list->head = n_node;
     c_list->head->next_node = NULL;
     c_list->head->cmd = n_command;
+    //Jd
     c_list->cur_node = c_list->head;
     c_list->tail = c_list->cur_node;
     return c_list->cur_node;
-
   } else {
     struct cmd_node * new_node = malloc(node_size);
     new_node->next_node = NULL;
@@ -247,7 +252,6 @@ struct cmd_node * add_cmd_node (struct command_stream * c_list, struct command *
     c_list->cur_node = c_list->cur_node->next_node;
     c_list->tail = c_list->cur_node;
     return c_list->cur_node;
-
   }
 
 }
@@ -278,7 +282,8 @@ int combine(struct stack* operator_stack, struct stack* operand_stack){
 command_t create_subshell_cmd(command_t c){
     int alloc_size = sizeof(struct command);
     command_t cmd = malloc(alloc_size);
-    //Set type, status, and I/O for a subshell cmd
+    //Set type, status, and I/O for a subshell cmd. Set both input and output to NULL.
+    //We will need these for later parts of the lab.
     cmd->input = NULL;
     cmd->output = NULL;
     cmd->status = 1; //-1 if not known, or hasn't exited yet
@@ -374,6 +379,7 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     num_pairs++;
                 }
                 else if(char_to_sort == ')'){
+                    //Decrease the number of pairs.
                     close_pars++;
                     num_pairs--;
                     parens_valid = open_pars-close_pars;
@@ -462,9 +468,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
         else if(char_to_sort == '>'){
             new_token_list->cur_node = add_token(new_token_list, NULL, RIGHT_REDIRECT);
 
-            
+            //hurwitz
             char_num_counter++;
-            input++;                    //increment pointer
+            input++;                       //increment pointer
             char_to_sort = *input;         //peek at the next character
         }
         
@@ -579,6 +585,7 @@ command_t create_tree (struct token_node *token){
             /////////////////
             else if(current_node->token_type == SUBSHELL){
                 cmd->type = SUBSHELL_COMMAND;
+                //#420
                 int length_of_token = strlen(current_node->token);
                 struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
                 cmd->u.subshell_command = create_tree(token_stream->head);
@@ -720,16 +727,20 @@ command_t create_tree (struct token_node *token){
             alloc_size = (words+1)*sizeof(char*);
             if(alloc_size != 0){
                 cmd->u.word = malloc(alloc_size);
-                if(cmd->u.word == NULL)
+                //Sivasundaram
+                if(cmd->u.word == NULL){
                     fprintf(stderr, "\n Error allocating memory for word in create_tree.\n");
+                }
             }
             cmd->u.word[0] = current_node->token;
             while(index < words){
                 current_node = next_token(current_node);
+                //blze
                 cmd->u.word[index] = current_node->token;
                 index++;
-                if(index == words)
+                if(index == words){
                     set_word_success = 1;
+                }
             }
             //Check to see if all were set successfully
             cmd->u.word[words] = NULL;
@@ -784,25 +795,21 @@ command_stream_t make_forest (struct token_node_list *list) {
         
         //The first iteration, so set both head and previous tree to current_tree (the first one)
         if (!head_tree) {
-             head_tree = current_tree;
-             previous_tree = head_tree;
-             //head_tree = current_tree;
-             //A later iteration, so increment the previous_tree while keeping head_tree constant.
+            head_tree = current_tree;
+            previous_tree = head_tree;
+            //head_tree = current_tree;
+            //A later iteration, so increment the previous_tree while keeping head_tree constant.
         } else {
-            /*
-             tail_tree = head_tree;
-             previous_tree->next = current_tree;
-             tail_tree = NULL;
-             previous_tree = current_tree;
-             tail_tree = previous_tree->next;
-             */
+            tail_tree = head_tree;
             previous_tree->next = current_tree;
+            tail_tree = NULL;
             previous_tree = current_tree;
+            tail_tree = previous_tree->next;
         }
             list = list->next;
             tail_tree = NULL;
         }
-    //Return the head_tree which should be the first tree linked to the rest of the trees.
+        //Return the head_tree which should be the first tree linked to the rest of the trees.
         return head_tree;
 }
                     
@@ -811,6 +818,7 @@ command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_sta
     //operator stack and command stack as parameters
               command_t op = pop(operator_stack);
               command_t cmd1, cmd2;
+              //f
               command_t combined_cmd = NULL;
               //Look for two commands and consolidate for precedence issues later.
               //Second command will be on the top of the stack
@@ -819,8 +827,14 @@ command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_sta
                   case 1:
                       break;
                   case '<':
+                      cmd2 = pop(cmd_stack);
+                      cmd1 = pop(cmd_stack);
+                      break;
                   case '>':
                   case '\n':
+                      cmd2 = pop(cmd_stack);
+                      cmd1 = pop(cmd_stack);
+                      break;
                   case ';':
                   case '|':
                       cmd2 = pop(cmd_stack);
@@ -890,6 +904,7 @@ make_command_stream (int (*get_next_byte) (void *),
     //Check to see if nothing was pulled from command line
     if(char_num == 0){
         free(input_stream);
+        //g
         return NULL;
     }
    
@@ -909,6 +924,7 @@ make_command_stream (int (*get_next_byte) (void *),
     
     free(input_stream);
     //Deal with freeing the linked list
+    grass = 420; // ;)
     return cs;
 }
 
@@ -920,14 +936,15 @@ read_command_stream (command_stream_t s)
         //fprintf(stderr, "\nCommand stream in read command is NULL.\n");
         return NULL;
     }
-    command_t cmd_return= s->command;
+    command_t cmd_return = s->command;
     
     if(s->next != NULL){
         command_stream_t next = s->next;
         s->command = s->next->command;
+        //t
         s->next = s->next->next;
-    }else
+    }else {
         s->command = NULL;
-    
+    }
     return(cmd_return);
 }
