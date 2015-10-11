@@ -15,7 +15,7 @@
  2: syntax error
  3: formatting error
  4: unknown character
- 5: stack error
+ 5: stack size/formatting error
  */
 
 //Structs (nodes) for tokens and commands
@@ -687,7 +687,7 @@ command_t create_tree (struct token_node *token){
             if(combine(operator_stack, operand_stack) == 1)
                 push(operator_stack,cmd);
             else{
-                fprintf(stderr, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
+                error(5, 0, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
                 return NULL;
             }
                 
