@@ -10,10 +10,117 @@
 #include <unistd.h> //Access dup system call
 #include <stdio.h> 
 
+#include "alloc.h"
+
+#define GEN_ERR  1
+#define FILE_ERR 2
+#define EXEC_ERR 3
+#define PIPE_ERR 4
+
 int
 command_status (command_t c)
 {
   return c->status;
+}
+
+void exec_AND(command_t c, int time_travel){
+  int dum = time_travel;
+  execute_command(c->u.command[0], time_travel);
+  c->status = c->u.command[0]->status;
+
+  int cmd_completion = -1;
+  cmd_completion = c->u.command[0]->status;
+  if(cmd_completion == 0){ //success
+    execute_command(c->u.command[1], time_travel);
+    c->status = c->u.command[1]->status;
+  } 
+  
+}
+
+void exec_SEQUENCE(command_t c, int time_travel){
+  int dum = time_travel;
+  execute_command(c->u.command[0], time_travel);
+  execute_command(c->u.command[1], time_travel);
+  c->status = c->u.command[1]->status;
+
+}
+
+void exec_OR(command_t c, int time_travel){
+  int dum = time_travel;
+  execute_command(c->u.command[0], time_travel);
+  c->status = c->u.command[0]->status;
+
+  int cmd_success = -1;
+  cmd_success = c->u.command[0]->status; //0 if good
+  //For OR, we need 1 of the two to be successful
+  if(!(cmd_success )){
+    execute_command(c->u.command[1], time_travel);
+    c->status = c->u.command[1]->status;
+  }
+}
+
+void exec_PIPE(command_t c, int time_travel){
+  int dum = time_travel;
+  //do pipe things
+  int buf[2];
+  if(pipe(buf) == -1)
+    error(PIPE_ERR, 0, "Error creating pipe.\n");
+
+  //close end of buffer and start the first command
+  close(buf[0]);
+  if(dup2(buf[1], 1) == -1)
+    error(FILE_ERR, 0, "dup2 error in exec_pipe 1st command.\n");
+  execute_command(c->u.command[0], time_travel);
+  c->status = c->u.command[0]->status;
+
+  close(buf[1]);
+  if(dup2(buf[0], 0) == -1)
+    error(FILE_ERR, 0, "dup2 error in exec_pipe 2nd command.\n");
+  execute_command(c->u.command[1], time_travel);
+  c->status = c->u.command[1]->status;
+  close(buf[0]);
+}
+
+void exec_SIMPLE(command_t c, int time_travel){
+  int file_status;
+  int dup_success = -1;
+  int file = 0;
+  int file_out = 0;
+  int dum = time_travel;
+  
+  //  int dummy = time_travel;
+  //Check to see if IO is null or not
+  if(c->input != NULL){
+    file_status = open(c->input, O_RDONLY);
+    if(file_status == -1 )
+      error(FILE_ERR, 0, "file error in exec_simple input.\n");
+
+    dup_success = dup2(file, 0);
+    if(dup_success == -1)
+      error(FILE_ERR, 0, "error with dup2 in exec_simple input.\n");
+    close(file);
+  }
+  if(c->output != NULL){
+    file_status = open(c->output, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    if(file_status == -1)
+      error(FILE_ERR, 0, "error in exec_simple output.\n");
+
+    dup_success = dup2(file_out, 1);
+    if(dup_success == -1)
+      error(FILE_ERR, 0, "error with dup2 in exec_simple output.\n");
+
+    close(file_out);
+
+  }
+  execvp(c->u.word[0], c->u.word);
+  //returns to this point if execvp fails
+  error(EXEC_ERR, 0, "execvp error in exec_simple. \n");
+}
+
+void exec_SUBSHELL(command_t c, int time_travel){
+  int dum = time_travel;
+  execute_command(c->u.subshell_command, time_travel);
+  //  c->status = c->u.subshell_command->status;
 }
 
 void
@@ -24,114 +131,47 @@ execute_command (command_t c, int time_travel)
      You can also use external functions defined in the GNU C Library.  */
   int dummy = c->status;
   int dumm2 = time_travel;
-  error (1, 0, "command execution not yet implemented");
+  //  error (1, 0, "command execution not yet implemented");
+  switch(c->type){
+    case AND_COMMAND:
+    {
+      exec_AND(c, time_travel);
+      break;
+    }
+    case SEQUENCE_COMMAND:
+      {
+	exec_SEQUENCE(c, time_travel);
+	break;
+      }
+    case OR_COMMAND:
+      {
+	exec_OR(c, time_travel);
+	break;
+      }
+    case PIPE_COMMAND:
+      {
+	exec_PIPE(c, time_travel);
+	break;
+      }
+    case SIMPLE_COMMAND:
+      {
+	exec_SIMPLE(c, time_travel);
+	break;
+      }
+    case SUBSHELL_COMMAND:
+      {
+	exec_SUBSHELL(c, time_travel);
+	break;
+      }
+    default:
+      error(1, 0, "No matching command types.\n");
+
+  }
+
 
 }
 
 /*
-
-void 
-execute_AND_command(command_t c)
-{
-  switch_on_command(c->u.command[0]);
-  //Check exit status (0 means hasn't exited). And requires both true
-  if(c->u.command[0]->status == 0){
-    switch_on_command(c->u.command[1]);
-    c->status = c->u.command[1]->status;
-  }
-  else{
-    c->status = c->u.command[0]->status;
-  }
-}
-
-
-void
-execute_OR_command(command_t c)
-{
-  switch_on_command(c->u.command[0]);
-  if(c->u.command[0]->status != 0){
-    switch_on_command(c->u.command[1]);
-    c->status = c->u.command[1]->status;
-  }
-  else{
-    c->status = c->u.command[0]->status;
-  }
-}
-
-//FIXME
-void
-execute_SEQUENCE_command(command_t c){
-  switch_on_command(c->u.command[0]);
-  _exit(c->u.command[0]->status);
-
-  switch_on_command(c->u.command[1]);
-  _exit(c->u.command[1]->status);
-}
-
-
-//FIXME
-void
-execute_PIPE_command(command_t c){
-  int grass[2]; //420
-  pipe(grass);
-
-  //2nd element is opened for writing
-  if(dup2(grass[1],1) < 0){ //Error (stdout)
-    error(1,0,"dup2 error in execute_PIPE_command");
-  }
-  close(grass[0]);
-  switch_on_command(c->u.command[0]);
-  
-  if(dup2(grass[0],0) < 0){ //Error (stdin)
-    error(1,0,"du2p error in execute_PIPE_command");
-  }
-  close(grass[1]);
-  switch_on_command(c->u.command[1]);
-  
-}
-
-void 
-execute_simple_command(command_t c)
-{
-  IO_redirect(c);
- 
-   // execvp() sys call:
-   // 1) first arg is char string contains nam eof file to be exec
-   // 2) second arg is pointer to an array of char strings (word)
- 
-  execvp(c->u.word[0], c->u.word);
-  //Will break, throw error if not..
-  error(1,0, "Simple command failure in execute_simple_command");
-}
-
-
-void
-execute_combined_IO(command_t c){
-  if(c->type == SUBSHELL_COMMAND){
-    IO_redirect(c);
-    switch_on_command(c->u.subshell_command); 
-  }
-  else if(c->type == SIMPLE_COMMAND){
-    execute_simple_command(c);
-  }
-  else{ //Throw error
-    error(1,0, "Error in execute_combined_IO");
-    
-  }
-}
-
-void
-IO_error_check(int opened, command_t c, int isOutput){
-  if(opened < 0){
-    error(1,0, "Error returned from open function in IO_error_check: %s", c->input);
-  }
-  if(dup2(opened, isOutput) < 0) {
-    error(1,0, "Error with sys. call dup2 in IO_error_check.");
-  }
-  if(close(opened) < 0) {
-    error(1,0, "Error on closing file in IO_error check.");
-  }
-}
 
 void
 IO_redirect(command_t c)
