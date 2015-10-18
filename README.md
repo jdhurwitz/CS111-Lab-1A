@@ -1,2 +1,2 @@
-# CS111-Lab-1A
-First part of CS111
+# CS111 Lab 1
+Time travel command shell using command trees.
