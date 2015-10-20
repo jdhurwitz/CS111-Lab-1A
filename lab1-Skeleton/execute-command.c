@@ -21,6 +21,7 @@
 #define PIPE_ERR 4
 #define PROC_ERR 5
 
+
 int
 command_status (command_t c)
 {
@@ -42,9 +43,18 @@ void exec_AND(command_t c, int time_travel){
 }
 
 void exec_SEQUENCE(command_t c, int time_travel){
+  //pid_t cp = fork();
   int dum = time_travel;
-  execute_command(c->u.command[0], time_travel);
-  execute_command(c->u.command[1], time_travel);
+  //if(cp == 0){
+      execute_command(c->u.command[0], time_travel);
+
+      //  }else if(cp > 0){
+      execute_command(c->u.command[1], time_travel);
+      //  }else
+     //error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
+  
+
+
   c->status = c->u.command[1]->status;
 
 }
@@ -54,10 +64,11 @@ void exec_OR(command_t c, int time_travel){
   execute_command(c->u.command[0], time_travel);
   c->status = c->u.command[0]->status;
 
-  int cmd_success = -1;
-  cmd_success = c->u.command[0]->status; //0 if good
+  //  int cmd_success = -1;
+  //cmd_success = c->status;
+   //0 if good
   //For OR, we need 1 of the two to be successful
-  if(!(cmd_success )){
+  if(c->status){
     execute_command(c->u.command[1], time_travel);
     c->status = c->u.command[1]->status;
   }
