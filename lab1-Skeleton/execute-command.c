@@ -91,8 +91,11 @@ void exec_PIPE(command_t c, int time_travel){
   	c->status = c->u.command[0]->status;
 
   	close(buf[1]);
-	return;
+	exit(0);
   } else if (new_p > 0) {
+    int p_status;
+    waitpid(new_p, &p_status, 0);
+    close(buf[1]);
   	if(dup2(buf[0], 0) == -1)
     	    error(FILE_ERR, 0, "dup2 error in exec_pipe 2nd command.\n");
   	execute_command(c->u.command[1], time_travel);
