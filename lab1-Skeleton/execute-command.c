@@ -119,8 +119,8 @@ void exec_SIMPLE(command_t c, int time_travel){
   cp = fork();
   if(cp == 0){
   if(c->input != NULL){
-    file_status = open(c->input, O_RDONLY);
-    if(file_status == -1 )
+    file = open(c->input, O_RDONLY);
+    if(file == -1 )
       error(FILE_ERR, 0, "file error in exec_simple input.\n");
 
     dup_success = dup2(file, 0);
@@ -129,8 +129,8 @@ void exec_SIMPLE(command_t c, int time_travel){
     close(file);
   }
   if(c->output != NULL){
-    file_status = open(c->output, O_RDWR | O_CREAT | O_TRUNC, 0666);
-    if(file_status == -1)
+    file_out = open(c->output, O_RDWR | O_CREAT | O_TRUNC, 0666);
+    if(file_out == -1)
       error(FILE_ERR, 0, "error in exec_simple output.\n");
 
     dup_success = dup2(file_out, 1);
