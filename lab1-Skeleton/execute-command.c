@@ -16,6 +16,7 @@
 #define FILE_ERR 2
 #define EXEC_ERR 3
 #define PIPE_ERR 4
+#define PROC_ERR 5
 
 int
 command_status (command_t c)
@@ -97,6 +98,8 @@ void exec_SIMPLE(command_t c, int time_travel){
   
   //  int dummy = time_travel;
   //Check to see if IO is null or not
+  cp = fork();
+  if(cp == 0){
   if(c->input != NULL){
     file_status = open(c->input, O_RDONLY);
     if(file_status == -1 )
@@ -122,6 +125,14 @@ void exec_SIMPLE(command_t c, int time_travel){
   execvp(c->u.word[0], c->u.word);
   //returns to this point if execvp fails
   error(EXEC_ERR, 0, "execvp error in exec_simple. \n");
+  }
+
+  else if(cp > 0){
+    int p_wait;
+    waitpid(cp, &p_wait, 0);
+    c->status = status;
+  }else
+    error(PROC_ERR, 0, "Error with child process in exec_SIMPLE. \n");
 }
 
 void exec_SUBSHELL(command_t c, int time_travel){
