@@ -383,7 +383,12 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     close_pars++;
                     num_pairs--;
                     parens_valid = open_pars-close_pars;
-                    
+		    if(num_pairs == 0 && parens_valid == 0){
+		      char_num_counter++;
+		      input++;
+		      char_to_sort = *input;
+		      break; 
+		    }
                 }
                 else if(char_to_sort == '\n'){
                     if(input[1] == '\000'){

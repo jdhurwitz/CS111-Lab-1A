@@ -9,7 +9,7 @@
 #include <error.h>
 #include <unistd.h> //Access dup system call
 #include <stdio.h> 
-
+#include <string.h>
 #include "alloc.h"
 
 #define GEN_ERR  1
@@ -61,24 +61,31 @@ void exec_OR(command_t c, int time_travel){
 
 void exec_PIPE(command_t c, int time_travel){
   int dum = time_travel;
+  pid_t new_p;
   //do pipe things
   int buf[2];
   if(pipe(buf) == -1)
     error(PIPE_ERR, 0, "Error creating pipe.\n");
+  new_p = fork();
+  if (new_p == 0) {
+  	//close end of buffer and start the first command
+  	close(buf[0]);
+  	if(dup2(buf[1], 1) == -1)
+    	    error(FILE_ERR, 0, "dup2 error in exec_pipe 1st command.\n");
+  	execute_command(c->u.command[0], time_travel);
+  	c->status = c->u.command[0]->status;
 
-  //close end of buffer and start the first command
-  close(buf[0]);
-  if(dup2(buf[1], 1) == -1)
-    error(FILE_ERR, 0, "dup2 error in exec_pipe 1st command.\n");
-  execute_command(c->u.command[0], time_travel);
-  c->status = c->u.command[0]->status;
-
-  close(buf[1]);
-  if(dup2(buf[0], 0) == -1)
-    error(FILE_ERR, 0, "dup2 error in exec_pipe 2nd command.\n");
-  execute_command(c->u.command[1], time_travel);
-  c->status = c->u.command[1]->status;
-  close(buf[0]);
+  	close(buf[1]);
+	return;
+  } else if (new_p > 0) {
+  	if(dup2(buf[0], 0) == -1)
+    	    error(FILE_ERR, 0, "dup2 error in exec_pipe 2nd command.\n");
+  	execute_command(c->u.command[1], time_travel);
+  	c->status = c->u.command[1]->status;
+  	close(buf[0]);
+  } else {
+	error(PIPE_ERR, 0, "Cannot create pipe.\n");
+  }
 }
 
 void exec_SIMPLE(command_t c, int time_travel){
