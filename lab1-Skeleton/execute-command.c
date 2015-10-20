@@ -98,7 +98,7 @@ void exec_SIMPLE(command_t c, int time_travel){
   int file = 0;
   int file_out = 0;
   int dum = time_travel;
-  
+  pid_t cp;  
   //  int dummy = time_travel;
   //Check to see if IO is null or not
   cp = fork();
@@ -131,9 +131,9 @@ void exec_SIMPLE(command_t c, int time_travel){
   }
 
   else if(cp > 0){
-    int p_wait;
-    waitpid(cp, &p_wait, 0);
-    c->status = status;
+    int p_status;
+    waitpid(cp, &p_status, 0);
+    c->status = p_status;
   }else
     error(PROC_ERR, 0, "Error with child process in exec_SIMPLE. \n");
 }
