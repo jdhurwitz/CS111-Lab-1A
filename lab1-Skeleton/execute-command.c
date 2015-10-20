@@ -156,7 +156,7 @@ void exec_SIMPLE(command_t c, int time_travel){
 void exec_SUBSHELL(command_t c, int time_travel){
   int dum = time_travel;
   execute_command(c->u.subshell_command, time_travel);
-  //  c->status = c->u.subshell_command->status;
+  c->status = c->u.subshell_command->status;
 }
 
 void
