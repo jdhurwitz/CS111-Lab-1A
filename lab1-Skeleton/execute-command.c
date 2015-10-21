@@ -113,8 +113,6 @@ void exec_SIMPLE(command_t c, int time_travel){
   int file = 0;
   int file_out = 0;
   int dum = time_travel;
-
-  int p_status;
   pid_t cp;  
   //  int dummy = time_travel;
   //Check to see if IO is null or not
@@ -148,7 +146,7 @@ void exec_SIMPLE(command_t c, int time_travel){
   }
 
   else if(cp > 0){
-
+    int p_status;
     waitpid(cp, &p_status, 0);
     c->status = p_status;
   }else
