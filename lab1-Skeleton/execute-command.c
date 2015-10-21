@@ -62,7 +62,7 @@ void exec_SEQUENCE(command_t c, int time_travel){
   }else if(cp > 0){
     waitpid(cp, &p_status, 0);
     c->status = p_status;
-    execute_command(c->u.command[1], time_travel);
+
    }else
      error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
  
