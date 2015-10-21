@@ -119,7 +119,7 @@ void exec_SIMPLE(command_t c, int time_travel){
   cp = fork();
   if(cp == 0){
   if(c->input != NULL){
-    file = open(c->input, O_RDONLY);
+    file = open(c->input, O_RDWR);
     if(file == -1 )
       error(FILE_ERR, 0, "file error in exec_simple input.\n");
 
