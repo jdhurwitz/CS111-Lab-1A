@@ -50,11 +50,11 @@ void exec_SEQUENCE(command_t c, int time_travel){
   if(cp == 0){
     cp = fork();
     if(cp == 0){ //grandchild
-      execute_command(c->u.command[0]);
+      execute_command(c->u.command[0], time_travel);
       exit(0);
     }else if(cp > 0){
       wait(cp, &p_status, 0);
-      execute_command(c->u.command[1]);
+      execute_command(c->u.command[1], time_travel);
       exit(0);
     }else
          error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
