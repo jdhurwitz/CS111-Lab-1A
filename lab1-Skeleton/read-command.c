@@ -114,7 +114,7 @@ int is_operator(char test){
 struct stack{
     int num_contents;
     int max_contents;
-    command_t contents[50];
+    command_t contents[10];
     //Pointer to top of the stack.
     command_t* top;
 };
