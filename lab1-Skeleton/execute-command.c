@@ -28,7 +28,7 @@ command_status (command_t c)
 {
   return c->status;
 }
-
+/*
 void exec_AND(command_t c, int time_travel){
   int dum = time_travel;
   execute_command(c->u.command[0], time_travel);
@@ -158,15 +158,13 @@ void exec_SUBSHELL(command_t c, int time_travel){
   execute_command(c->u.subshell_command, time_travel);
   c->status = c->u.subshell_command->status;
 }
-
+*/
 void
 execute_command (command_t c, int time_travel)
 {
-  /* FIXME: Replace this with your implementation.  You may need to
-     add auxiliary functions and otherwise modify the source code.
-     You can also use external functions defined in the GNU C Library.  */
   int dummy = c->status;
   int dumm2 = time_travel;
+  /*
   //  error (1, 0, "command execution not yet implemented");
   switch(c->type){
     case AND_COMMAND:
@@ -204,25 +202,6 @@ execute_command (command_t c, int time_travel)
 
   }
 
-
+  */
+  error(1, 0, "csdkjfkd;sjfd");
 }
-
-/*
-
-void
-IO_redirect(command_t c)
-{
-
-  if(c->input != NULL){
-    int read_input = open(c->input, O_RDWR); //Read and write permission
-    IO_error_check(read_input, c, 0);
-  }
-
-  if(c->output != NULL){
-    int output = open(c->output, O_TRUNC | O_CREAT | S_IWUSR | S_IWGRP | O_WRONLY | S_IRUSR | S_IRGRP);
-    IO_error_check(output, c, 1);
-  } 
-}
-
-
-*/
