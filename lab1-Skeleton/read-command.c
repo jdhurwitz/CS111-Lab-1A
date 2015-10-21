@@ -508,15 +508,17 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
 
                         new_token_list->head = add_token(new_token_list, NULL, DUMMY_HEAD );
                         new_token_list->cur_node = new_token_list->head;
-			if(char_to_sort == ';'){
-			  new_token_list->cur_node = add_token(new_token_list, NULL, SEMICOLON);
-			}
+		
 
+		
                     }
                     break;
                 default:
                     break;
             }
+	if(char_to_sort == ';'){
+	       new_token_list->cur_node = add_token(new_token_list, NULL, SEMICOLON);
+	}
             char_num_counter++;
             input++;                    //increment pointer
             char_to_sort = *input;         //peek at the next character
@@ -530,11 +532,11 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
             input++;                //increment stream pointer
             char_to_sort = *input;
             
-	    }
+	    }*/
         else{
             error(4, 0,"\nCharacter is not a word or a special token.\n");
             return NULL;    //no character matches
-	    }*/
+	    }
     }
     //Return pointer to the top of the token_stream
     return head_of_list;
