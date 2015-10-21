@@ -592,8 +592,8 @@ command_t create_tree (struct token_node *token){
                 int length_of_token = strlen(current_node->token);
                 struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
                 cmd->u.subshell_command = create_tree(token_stream->head);
-		cmd->u.subshell_command->input = cmd->input;
-		cmd->u.subshell_command->output = cmd->output;
+		//		cmd->u.subshell_command->input = cmd->input;
+		//cmd->u.subshell_command->output = cmd->output;
                 push(operand_stack, cmd);
             }
             
@@ -790,11 +790,14 @@ command_stream_t make_forest (struct token_node_list *list) {
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
+        if(command_node->u->subshell_command != NULL){
+	  command_node->u->subshell_command->input = command_node->input;
+	  command_node->u->subshell_command->output = command_node->output;
+	}
         if (current_tree == NULL){
             fprintf(stderr, "Was not able to allocate memory to standard error");
         }
         
-        //Test
         current_tree->command = command_node;
         
         
