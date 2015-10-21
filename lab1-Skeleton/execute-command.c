@@ -28,7 +28,7 @@ command_status (command_t c)
 {
   return c->status;
 }
-/*
+
 void exec_AND(command_t c, int time_travel){
   int dum = time_travel;
   execute_command(c->u.command[0], time_travel);
@@ -158,13 +158,13 @@ void exec_SUBSHELL(command_t c, int time_travel){
   execute_command(c->u.subshell_command, time_travel);
   c->status = c->u.subshell_command->status;
 }
-*/
+
 void
 execute_command (command_t c, int time_travel)
 {
   int dummy = c->status;
   int dumm2 = time_travel;
-  /*
+  
   //  error (1, 0, "command execution not yet implemented");
   switch(c->type){
     case AND_COMMAND:
@@ -202,6 +202,6 @@ execute_command (command_t c, int time_travel)
 
   }
 
-  */
-  error(1, 0, "csdkjfkd;sjfd");
+  
+  
 }
