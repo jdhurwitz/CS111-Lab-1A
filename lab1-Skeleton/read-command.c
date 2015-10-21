@@ -790,10 +790,12 @@ command_stream_t make_forest (struct token_node_list *list) {
         //Take the token stream and convert it to a tree.
         command_t command_node = create_tree(current);
         current_tree = malloc(sizeof(struct command_stream));
+	/*
         if(command_node->u.subshell_command != NULL){
 	  command_node->u.subshell_command->input = command_node->input;
 	  command_node->u.subshell_command->output = command_node->output;
 	}
+	*/
         if (current_tree == NULL){
             fprintf(stderr, "Was not able to allocate memory to standard error");
         }
