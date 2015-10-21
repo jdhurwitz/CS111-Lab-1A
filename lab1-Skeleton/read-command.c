@@ -592,6 +592,8 @@ command_t create_tree (struct token_node *token){
                 int length_of_token = strlen(current_node->token);
                 struct token_node_list *token_stream = create_token_stream(current_node->token,length_of_token);
                 cmd->u.subshell_command = create_tree(token_stream->head);
+		cmd->u.subshell_command->input = cmd->input;
+		cmd->u.subshell_command->output = cmd->output;
                 push(operand_stack, cmd);
             }
             
