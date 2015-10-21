@@ -44,19 +44,28 @@ void exec_AND(command_t c, int time_travel){
 }
 
 void exec_SEQUENCE(command_t c, int time_travel){
-  //pid_t cp = fork();
+  int p_status;
+  pid_t cp = fork();
   int dum = time_travel;
-  //if(cp == 0){
-      execute_command(c->u.command[0], time_travel);
+  if(cp == 0){
+    cp = fork();
+    if(cp == 0){ //grandchild
+      execute_command(c->u.command[0]);
+      exit(0);
+    }else if(cp > 0){
+      wait(cp, &p_status, 0);
+      execute_command(c->u.command[1]);
+      exit(0);
+    }else
+         error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
 
-      //  }else if(cp > 0){
-      execute_command(c->u.command[1], time_travel);
-      //  }else
-     //error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
-  
-
-
-  c->status = c->u.command[1]->status;
+  }else if(cp > 0){
+    waitpid(cp, &p_status, 0);
+    c->status = p_status;
+    execute_command(c->u.command[1], time_travel);
+   }else
+     error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
+ 
 
 }
 
