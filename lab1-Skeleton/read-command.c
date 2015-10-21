@@ -418,10 +418,8 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                     error(2, 0, "\n Mismatched parentheses.\n");
                     return NULL;
                 }
-                
+               }
                 new_token_list->cur_node = add_token(new_token_list, ss_buf, SUBSHELL);
-                
-            }
             
         }
         //Check for OR and PIPE
