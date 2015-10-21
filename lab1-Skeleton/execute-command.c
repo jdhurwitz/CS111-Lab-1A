@@ -53,7 +53,7 @@ void exec_SEQUENCE(command_t c, int time_travel){
       execute_command(c->u.command[0], time_travel);
       exit(0);
     }else if(cp > 0){
-      wait(cp, &p_status, 0);
+      waitpid(cp, &p_status, 0);
       execute_command(c->u.command[1], time_travel);
       exit(0);
     }else
