@@ -17,7 +17,15 @@ int grass = 0;
  4: unknown character
  5: stack size/formatting error
  6: pointer out of bounds error
+ 7: unable to determine command for dep. graph
  */
+
+typedef struct graphnode *graphnode_t;
+
+struct graphNode{
+  char *filename
+  graphnode *next_node;
+}
 
 //Structs (nodes) for tokens and commands
 struct cmd_node{
@@ -825,6 +833,54 @@ command_stream_t make_forest (struct token_node_list *list) {
         return head_tree;
 }
                     
+/*
+Go through command tree and discover all file dependencies.
+ */
+graphnode_t create_dependency_graph(command_t c){
+  graphnode_t subshell_graph = NULL;
+  graphnode_t temp_node = NULL;
+  graphnode_t dep_graph = NULL;
+
+  if(c->type == AND_COMMAND || c->type == OR_COMMAND || c->type == PIPE_COMMAND || c->type == SEQUENCE_COMMAND)
+    {
+      dep_graph = create_dependency_graph(c->u.command[0]);
+      if(dep_graph != NULL){
+	//handle this shit
+      }
+    }
+  else if(c->type == SUBSHELL_COMMAND || c->type == SIMPLE_COMMAND){ 
+   //We want to make a dependency graph for the subshell first
+    subshell_ggraph = create_dependency_graph(c->u.subshell_command);
+
+      if(c->input != NULL){
+	temp_node = malloc(sizeof(struct graphnode));
+	if(!temp_node){
+	  error(1,0, "Error allocating memory in create_dependency_graph.\n");
+	}
+	temp_node->filename = c->input;
+	temp_node->next_node = NULL;
+	dep_graph = temp_node;
+	}
+      if(c->output != NULL){
+	temp_node = malloc(sizeof(struct graphnode));
+	if(!temp_node){
+	  error(1,0,"Error allocating memory in create_dependency_graph.\n");
+	}
+	temp_node->filename = c->output;
+	temp_node->next_node = NULL;
+	dep_graph = temp_node;
+      }
+      if(subshell_graph != NULL){ //This means that the subshell graph was created
+	temp_node = dep_graph;
+	dep_graph = subshell_graph;
+	dep_graph->next_node = temp_node;
+      } 
+  }
+  else{
+      error(7,0,"Cannot determine command type in create_dependency_graph.\n");
+  }
+  return dep_graph;
+}
 
 command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
     //operator stack and command stack as parameters
