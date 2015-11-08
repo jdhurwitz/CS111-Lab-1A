@@ -20,12 +20,9 @@ int grass = 0;
  7: unable to determine command for dep. graph
  */
 
-typedef struct graphnode *graphnode_t;
 
-struct graphNode{
-  char *filename
-  graphnode *next_node;
-}
+
+
 
 //Structs (nodes) for tokens and commands
 struct cmd_node{
@@ -837,7 +834,7 @@ command_stream_t make_forest (struct token_node_list *list) {
 Go through command tree and discover all file dependencies.
  */
 graphnode_t create_dependency_graph(command_t c){
-  graphnode_t subshell_graph = NULL;
+  graphnode_t  subshell_graph = NULL;
   graphnode_t temp_node = NULL;
   graphnode_t dep_graph = NULL;
 
@@ -845,12 +842,17 @@ graphnode_t create_dependency_graph(command_t c){
     {
       dep_graph = create_dependency_graph(c->u.command[0]);
       if(dep_graph != NULL){
-	//handle this shit
-      }
+	temp_node = dep_graph;
+	while(temp_node->next_node != NULL){
+	  temp_node = temp_node->next_node;
+	}
+	temp_node->next_node = create_dependency_graph(c->u.command[1]);
+      }else
+	dep_graph = create_dependency_graph(c->u.command[1]);
     }
   else if(c->type == SUBSHELL_COMMAND || c->type == SIMPLE_COMMAND){ 
    //We want to make a dependency graph for the subshell first
-    subshell_ggraph = create_dependency_graph(c->u.subshell_command);
+    subshell_graph = create_dependency_graph(c->u.subshell_command);
 
       if(c->input != NULL){
 	temp_node = malloc(sizeof(struct graphnode));
@@ -868,7 +870,10 @@ graphnode_t create_dependency_graph(command_t c){
 	}
 	temp_node->filename = c->output;
 	temp_node->next_node = NULL;
-	dep_graph = temp_node;
+        if(dep_graph != NULL)
+	  dep_graph->next_node = temp_node;
+	else
+          dep_graph = temp_node;
       }
       if(subshell_graph != NULL){ //This means that the subshell graph was created
 	temp_node = dep_graph;
@@ -882,6 +887,42 @@ graphnode_t create_dependency_graph(command_t c){
   return dep_graph;
 }
 
+//Returns 1 if either list is null
+int is_dep_null(graphnode_t list1, graphnode_t list2){
+  if(list1 == NULL || list2 == NULL)
+    return 1;
+  else
+    return 0;
+  
+}
+
+
+int find_dependencies(graphnode_t list1, graphnode_t list2){
+  graphnode_t iterator1 = NULL;
+  graphnode_t iterator2 = NULL;
+  iterator1 = list1;
+  int files_independent;
+  if(!is_dep_null(list1, list2)){
+       while(iterator1 != NULL){
+	 iterator2 = list2;
+	 while(iterator2 != NULL){
+	   files_independent = strcmp(iterator1->filename, iterator2->filename);
+	   if(!files_independent)
+	     return 1;
+
+	   iterator2 = iterator2->next_node;
+	 }
+	 iterator1 = iterator1->next_node;
+       }
+       
+  }
+    else
+      return 0; //one of the lists was null
+
+
+     //If we've reached here, nothing was found with dependencies
+     return 0;
+}
 command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
     //operator stack and command stack as parameters
               command_t op = pop(operator_stack);
