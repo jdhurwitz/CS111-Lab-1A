@@ -20,23 +20,20 @@ int grass = 0;
  7: unable to determine command for dep. graph
  */
 
-
-
-
-
 //Structs (nodes) for tokens and commands
 struct cmd_node{
   struct command *cmd;  //This is how command is accessed
   struct cmd_node *next_node;
 };
 
+/*
 struct command_stream{
   command_t command;
   struct command_stream *next;
   struct cmd_node *head;
   struct cmd_node *cur_node;
   struct cmd_node *tail;
-};
+  };*/
 
 
 enum token_name{
