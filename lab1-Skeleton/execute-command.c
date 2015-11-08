@@ -44,28 +44,19 @@ void exec_AND(command_t c, int time_travel){
 }
 
 void exec_SEQUENCE(command_t c, int time_travel){
-  int p_status;
-  pid_t cp = fork();
+  //pid_t cp = fork();
   int dum = time_travel;
-  if(cp == 0){
-    cp = fork();
-    if(cp == 0){ //grandchild
+  //if(cp == 0){
       execute_command(c->u.command[0], time_travel);
-      exit(0);
-    }else if(cp > 0){
-      waitpid(cp, &p_status, 0);
+
+      //  }else if(cp > 0){
       execute_command(c->u.command[1], time_travel);
-      exit(0);
-    }else
-         error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
+      //  }else
+     //error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
+  
 
-  }else if(cp > 0){
-    waitpid(cp, &p_status, 0);
-    c->status = p_status;
 
-   }else
-     error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
- 
+  c->status = c->u.command[1]->status;
 
 }
 
@@ -211,6 +202,104 @@ execute_command (command_t c, int time_travel)
 
   }
 
-  
-  
+int time_trash_execute (command_stream_t stream) {
+	while (stream != NULL) {
+		command_stream_t list, curr_list, prev_stream = NULL;
+		command_stream_t curr_stream = stream;
+		int run = 0;
+		while (curr_stream != NULL) {
+			if (list == NULL) {
+				curr_list = curr_stream;
+				list = curr_stream;
+				stream = curr_stream->next;
+				curr_stream = curr_stream->next;
+				run = 1;
+			} else {
+				int is_dependent = 0;
+				command_stream_t stream_depend = list;
+				while (stream_depend != NULL) {
+					if (find_dependencies(curr_stream->depend, stream_depend->depend)){
+						is_dependent = 1;
+						break;	
+					}
+					stream_depend = stream_depend->next;
+				}
+				if (is_dependent == 0){
+					if (prev_stream == NULL){
+						curr_list->next = curr_stream;
+						curr_list = curr_stream;
+						stream = curr_stream->next;
+						curr_stream = curr_stream->next;
+					}else {
+						curr_list->next = curr_stream;
+						curr_list = curr_stream;
+						prev_stream->next = curr_stream->next;
+						curr_stream = curr_stream->next;
+					}
+					run = run + 1;
+				} else {
+					prev_stream = curr_stream;
+					curr_stream = curr_stream->next;
+				}
+			}
+
+			curr_list->next = NULL;
+		
+		}
+
+		pid_t* child = checked_malloc(run * sizeof(pid_t));
+		int j = 0;
+		if (list != NULL){
+			command_t cmd;
+			curr_stream = list;
+			while (curr_stream){
+				pid_t children = fork();
+				if (children == 0){
+					execute_command(curr_list->command, 1); 
+					exit(0);
+				} else if (children > 0) 
+					child[j] = children; 
+				 else 
+					error(FILE_ERR, 0, "Unable to create child process.\n");					
+				
+				j = j +1;
+				curr_stream = curr_stream->next;
+			}
+			int wait;
+			do {
+				wait = 0;
+				int i;
+				for (i = 0; i < run; i++) {
+					if (child[i] > 0) {
+						if (waitpid(child[i], NULL, 0) != 0) 
+							child[i] = 0;
+						else 
+							wait = 1;
+						
+					}
+					sleep(0);
+				}
+			} while (wait ==1);
+		}
+
+		free(child);
+		curr_stream = list;
+		prev_stream = NULL;
+		while (curr_stream) {
+			delete_command_tree(curr_stream -> command);
+			free(curr_stream -> command);
+			graphnode_t list_curr = curr_stream -> depend;
+			graphnode_t list_prev = NULL;
+			while (list_curr) {
+				list_prev = list_curr;
+				list_curr = list_curr->next_node;
+				free (list_prev);
+			}
+			free (curr_stream -> depend);
+			prev_stream = curr_stream;
+			curr_stream = curr_stream->next;
+	       }		
+
+	}
+ return 0;
 }
