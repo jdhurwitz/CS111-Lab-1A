@@ -9,6 +9,10 @@ struct graphnode{
   graphnode_t next_node;
 };
 
+graphnode_t create_dependency_graph(command_t c);
+int find_dependencies(graphnode_t list1, graphnode_t list2);
+
+
 struct command_stream{
   command_t command;
   struct command_stream *next;
