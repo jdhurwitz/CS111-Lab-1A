@@ -54,12 +54,12 @@ main (int argc, char **argv)
   command_stream_t command_stream =
     make_command_stream (get_next_byte, script_stream);
 
+  command_t last_command = NULL;
+  command_t command;
   if (time_travel == 1) {
 	return time_trash_execute(command_stream);
   } else {
-  	command_t last_command = NULL;
-  	command_t command;
-  	while ((command = read_command_stream (command_stream))){
+       	while ((command = read_command_stream (command_stream))){
         	if (print_tree){
 	  		printf ("# %d\n", command_number++);
 	  		print_command (command);
@@ -69,6 +69,7 @@ main (int argc, char **argv)
 	  		execute_command (command, time_travel);
 		}
     	}
-  return print_tree || !last_command ? 0 : command_status (last_command);
   }
+  return print_tree || !last_command ? 0 : command_status (last_command);
+  
 }

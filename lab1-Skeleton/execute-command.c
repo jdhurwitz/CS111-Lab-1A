@@ -45,17 +45,27 @@ void exec_AND(command_t c, int time_travel){
 
 void exec_SEQUENCE(command_t c, int time_travel){
   //pid_t cp = fork();
+  int p_status;
+  pid_t cp = fork();
   int dum = time_travel;
-  //if(cp == 0){
-      execute_command(c->u.command[0], time_travel);
-
+  if(cp == 0){
+      cp = fork();
+      if (cp == 0) {
+      	execute_command(c->u.command[0], time_travel);
+	exit(0);
+      } else if(cp > 0) {
+	waitpid(cp, &p_status, 0);
       //  }else if(cp > 0){
-      execute_command(c->u.command[1], time_travel);
+        execute_command(c->u.command[1], time_travel);
+	exit(0);
+       } else
       //  }else
-     //error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
-  
-
-
+     	error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n");
+  } else if (cp > 0) {
+	waitpid(cp, &p_status, 0);
+	c->status = p_status;
+  } else 
+	error(PROC_ERR, 0, "Error with child process in exec_SEQUENCE \n"); 
   c->status = c->u.command[1]->status;
 
 }
@@ -201,7 +211,7 @@ execute_command (command_t c, int time_travel)
       error(1, 0, "No matching command types.\n");
 
   }
-
+}
 int time_trash_execute (command_stream_t stream) {
 	while (stream != NULL) {
 		command_stream_t list, curr_list, prev_stream = NULL;
@@ -301,5 +311,5 @@ int time_trash_execute (command_stream_t stream) {
 	       }		
 
 	}
- return 0;
+ 	return 0;
 }
