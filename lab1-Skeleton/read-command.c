@@ -518,9 +518,9 @@ struct token_node_list* create_token_stream(char* input, int num_of_chars){
                 default:
                     break;
             }
-	if(char_to_sort == ';'){
-	       new_token_list->cur_node = add_token(new_token_list, NULL, SEMICOLON);
-	}
+	    if(char_to_sort == ';'){
+	        new_token_list->cur_node = add_token(new_token_list, NULL, SEMICOLON);
+	    }
             char_num_counter++;
             input++;                    //increment pointer
             char_to_sort = *input;         //peek at the next character
@@ -704,13 +704,13 @@ command_t create_tree (struct token_node *token){
         /////////////////
         else if(current_node->token_type == SEMICOLON){
             cmd->type = SEQUENCE_COMMAND;
-            if(combine(operator_stack, operand_stack) == 1)
-                push(operator_stack,cmd);
-            else{
-                error(5, 0, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
-                return NULL;
-            }
-                
+	    if(operator_stack->num_contents != 0){
+	      if(combine(operator_stack, operand_stack) == 0){
+                    error(5, 0, "\n Either operand stack has fewer than 2 ops or operator stack is empty. (SEMICOLON)\n");
+                    return NULL;
+                }
+	    }
+	    push(operator_stack, cmd);
         }
        
         /////////////////
