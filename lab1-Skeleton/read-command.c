@@ -920,6 +920,38 @@ int find_dependencies(graphnode_t list1, graphnode_t list2){
      //If we've reached here, nothing was found with dependencies
      return 0;
 }
+
+void delete_command_tree(command_t c){
+  int index;
+  //Base case
+  if(c->type == SIMPLE_COMMAND){
+    free(c->input);
+    free(c->output);
+    while(c->u.word[index] != NULL){
+      free(c->u.word[index]);
+      index++;
+    }
+  }
+  else if(c->type == SUBSHELL_COMMAND){
+    free(c->input);
+    free(c->output);
+    delete_command_tree(c->u.subshell_command);
+    free(c->u.subshell_command);
+  }
+  else if(c->type == AND_COMMAND || c->type == OR_COMMAND || c->type == SEQUENCE_COMMAND || c->type == PIPE_COMMAND){
+    //We need to delete two command trees
+    delete_command_tree(c->u.command[0]);
+    free(c->u.command[0]);
+    delete_command_tree(c->u.command[1]);
+    free(c->u.command[1]);
+  }
+  else
+    error(7,0,"Error freeing command tree in delete_command_tree.\n");
+
+  return; 
+}
+
+
 command_t encounter_operator(struct stack *operator_stack, struct stack *cmd_stack){
     //operator stack and command stack as parameters
               command_t op = pop(operator_stack);

@@ -19,7 +19,7 @@ struct command_stream{
   struct cmd_node *head;
   struct cmd_node *cur_node;
   struct cmd_node *tail;
-}
+};
 /* Create a command stream from LABEL, GETBYTE, and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.
    GETBYTE will return the next input byte, or a negative number
