@@ -12,6 +12,7 @@ struct graphnode{
 graphnode_t create_dependency_graph(command_t c);
 int find_dependencies(graphnode_t list1, graphnode_t list2);
 
+void delete_command_tree(command_t c);
 
 struct command_stream{
   command_t command;
