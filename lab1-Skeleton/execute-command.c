@@ -217,7 +217,8 @@ int time_trash_execute (command_stream_t stream) {
 	command_stream_t serial_execute2 = NULL;
 	command_stream_t serial_head = NULL;
 	while (stream != NULL) {
-		command_stream_t list, curr_list, prev_stream = NULL;
+		command_stream_t list, curr_list, prev_stream;
+		list = NULL; curr_list = NULL; prev_stream = NULL;
 		command_stream_t curr_stream = stream;
 		int run = 0;
 		while (curr_stream != NULL) {
@@ -230,13 +231,6 @@ int time_trash_execute (command_stream_t stream) {
 			} else {
 				int is_dependent = 0;
 				command_stream_t stream_depend = list;
-				while (stream_depend != NULL) {
-				//	if (find_dependencies(curr_stream->depend, stream_depend->depend)){
-				//		is_dependent = 1;
-				//		break;	
-				//	}
-					stream_depend = stream_depend->next;
-				}
 				if (is_dependent == 0){
 					if (prev_stream == NULL){
 						curr_list->next = curr_stream;
@@ -317,7 +311,7 @@ int time_trash_execute (command_stream_t stream) {
 			execute_command(serial_head->command,0);
 			serial_head = serial_head->next;
 		}			
-
+		
 		free(child);
 		curr_stream = list;
 		prev_stream = NULL;
@@ -331,7 +325,6 @@ int time_trash_execute (command_stream_t stream) {
 				list_curr = list_curr->next_node;
 				free (list_prev);
 			}
-			//free (curr_stream -> depend);
 			prev_stream = curr_stream;
 			curr_stream = curr_stream->next;
 	       }		

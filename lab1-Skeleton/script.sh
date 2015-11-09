@@ -1,12 +1,12 @@
 #!/bin/bash
 
 rm -rf testdir
-ARRAY=( Ram Jonny Tim Jeremy Ricky Max)
+#ARRAY=( Ram Jonny Tim Jeremy Ricky Max)
 
-NUM_ITEMS=${#ARRAY[@]}
+#NUM_ITEMS=${#ARRAY[@]}
 
-for((i=0; i<$NUM_ITEMS;i++)); do
-    echo ${ARRAY[${i}]}
+for((i=0; i<3;i++)); do
+    echo ARRAY[0]
 done
 
 mkdir testdir
