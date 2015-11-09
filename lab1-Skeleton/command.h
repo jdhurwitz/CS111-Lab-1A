@@ -17,10 +17,7 @@ void delete_command_tree(command_t c);
 struct command_stream{
   command_t command;
   struct command_stream *next;
-  struct cmd_node *head;
   graphnode_t depend;
-  struct cmd_node *cur_node;
-  struct cmd_node *tail;
 };
 /* Create a command stream from LABEL, GETBYTE, and ARG.  A reader of
    the command stream will invoke GETBYTE (ARG) to get the next byte.

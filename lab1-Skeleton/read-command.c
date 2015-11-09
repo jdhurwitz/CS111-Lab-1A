@@ -233,7 +233,7 @@ struct token_node *add_token(struct token_node_list *tokens, char *token_to_add,
 
 }
 
- 
+/* 
 struct cmd_node * add_cmd_node (struct command_stream * c_list, struct command * n_command) {
   int node_size = sizeof(struct cmd_node);
 
@@ -257,7 +257,7 @@ struct cmd_node * add_cmd_node (struct command_stream * c_list, struct command *
   }
 
 }
-
+*/
 
 
 //Function to combine commands and an operator. RETURN 1 if success, 0 if fail

@@ -213,6 +213,7 @@ execute_command (command_t c, int time_travel)
   }
 }
 int time_trash_execute (command_stream_t stream) {
+	command_stream_t serial_execute = NULL;
 	while (stream != NULL) {
 		command_stream_t list, curr_list, prev_stream = NULL;
 		command_stream_t curr_stream = stream;
@@ -228,10 +229,10 @@ int time_trash_execute (command_stream_t stream) {
 				int is_dependent = 0;
 				command_stream_t stream_depend = list;
 				while (stream_depend != NULL) {
-					if (find_dependencies(curr_stream->depend, stream_depend->depend)){
-						is_dependent = 1;
-						break;	
-					}
+				//	if (find_dependencies(curr_stream->depend, stream_depend->depend)){
+				//		is_dependent = 1;
+				//		break;	
+				//	}
 					stream_depend = stream_depend->next;
 				}
 				if (is_dependent == 0){
@@ -263,34 +264,54 @@ int time_trash_execute (command_stream_t stream) {
 			command_t cmd;
 			curr_stream = list;
 			while (curr_stream){
-				pid_t children = fork();
-				if (children == 0){
-					execute_command(curr_list->command, 1); 
-					exit(0);
-				} else if (children > 0) 
-					child[j] = children; 
-				 else 
+				if (curr_stream->depend == NULL) {
+					pid_t children = fork();
+					if (children == 0){
+						execute_command(curr_stream->command, 1); 
+						exit(0);
+					} else if (children > 0) { 
+						child[j] = children;
+					 
+				 	} else 
 					error(FILE_ERR, 0, "Unable to create child process.\n");					
+					
+					j = j +1;
+				} else {
+				  //If no nodes in serial_execute, add to the front
+				  if(serial_execute == NULL) {
+				    serial_execute = malloc(sizeof(struct command_stream));
+				    serial_execute->command = curr_stream->command;
+				    serial_execute->next = NULL;
+				  }else{ //append if there are already nodes and iterate
+				    serial_execute->next = malloc(sizeof(struct command_stream));
+				    serial_execute->next->command  = curr_stream->command;
+				    serial_execute = serial_execute->next;
+				  }
+				  
+				}
+					curr_stream = curr_stream->next;
 				
-				j = j +1;
-				curr_stream = curr_stream->next;
 			}
-			int wait;
+			int wait_var;
 			do {
-				wait = 0;
+				wait_var = 0;
 				int i;
 				for (i = 0; i < run; i++) {
 					if (child[i] > 0) {
 						if (waitpid(child[i], NULL, 0) != 0) 
 							child[i] = 0;
 						else 
-							wait = 1;
+							wait_var = 1;
 						
 					}
 					sleep(0);
 				}
-			} while (wait ==1);
+			} while (wait_var ==1);
 		}
+		while (serial_execute) {
+			execute_command(serial_execute->command,0);
+			serial_execute = serial_execute->next;
+		}			
 
 		free(child);
 		curr_stream = list;
@@ -305,7 +326,7 @@ int time_trash_execute (command_stream_t stream) {
 				list_curr = list_curr->next_node;
 				free (list_prev);
 			}
-			free (curr_stream -> depend);
+			//free (curr_stream -> depend);
 			prev_stream = curr_stream;
 			curr_stream = curr_stream->next;
 	       }		
