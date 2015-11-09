@@ -214,6 +214,8 @@ execute_command (command_t c, int time_travel)
 }
 int time_trash_execute (command_stream_t stream) {
 	command_stream_t serial_execute = NULL;
+	command_stream_t serial_execute2 = NULL;
+	command_stream_t serial_head = NULL;
 	while (stream != NULL) {
 		command_stream_t list, curr_list, prev_stream = NULL;
 		command_stream_t curr_stream = stream;
@@ -280,11 +282,14 @@ int time_trash_execute (command_stream_t stream) {
 				  //If no nodes in serial_execute, add to the front
 				  if(serial_execute == NULL) {
 				    serial_execute = malloc(sizeof(struct command_stream));
+				    serial_head = serial_execute;
 				    serial_execute->command = curr_stream->command;
 				    serial_execute->next = NULL;
 				  }else{ //append if there are already nodes and iterate
-				    serial_execute->next = malloc(sizeof(struct command_stream));
-				    serial_execute->next->command  = curr_stream->command;
+				    serial_execute2 = malloc(sizeof(struct command_stream));
+				    serial_execute2->command = curr_stream->command;
+				    serial_execute2->next = NULL;
+			  	    serial_execute->next = serial_execute2;
 				    serial_execute = serial_execute->next;
 				  }
 				  
@@ -308,9 +313,9 @@ int time_trash_execute (command_stream_t stream) {
 				}
 			} while (wait_var ==1);
 		}
-		while (serial_execute) {
-			execute_command(serial_execute->command,0);
-			serial_execute = serial_execute->next;
+		while (serial_head) {
+			execute_command(serial_head->command,0);
+			serial_head = serial_head->next;
 		}			
 
 		free(child);
