@@ -845,7 +845,8 @@ graphnode_t create_dependency_graph(command_t c){
     }
   else if(c->type == SUBSHELL_COMMAND || c->type == SIMPLE_COMMAND){ 
    //We want to make a dependency graph for the subshell first
-    subshell_graph = create_dependency_graph(c->u.subshell_command);
+      if(c->type == SUBSHELL_COMMAND)
+	subshell_graph = create_dependency_graph(c->u.subshell_command);
 
       if(c->input != NULL){
 	temp_node = malloc(sizeof(struct graphnode));
